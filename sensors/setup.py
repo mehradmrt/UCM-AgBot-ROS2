@@ -4,7 +4,7 @@ package_name = 'sensors'
 
 setup(
     name=package_name,
-    version='0.0.0',
+    version='1.0.0',
     packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -13,13 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='arya',
-    maintainer_email='mehradmortazavi@gmail.com',
+    maintainer='MM',
+    maintainer_email='smortazavi3@ucmerced.edu',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'RTK_GPS = sensors.RTK_GPS:main',
         ],
     },
 )

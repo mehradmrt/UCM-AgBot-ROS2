@@ -27,21 +27,22 @@ class GPSPublisher_ser(Node):
         self.timer = self.create_timer(time_period, self.read_and_publish_gps_info)
 
     def read_and_publish_gps_info(self):
-        self.get_logger().info('In read_and_publish_gps_info...')
+        # self.get_logger().info('In read_and_publish_gps_info...')
         try:
             data = self.serial_conn.readline()
             if data:
                 # print(data)
                 line = data.decode("utf-8").rstrip()
-                if line.startswith('$GPGGA') or line.startswith('$GPRMC'):
-                    print(line)
+                if line.startswith('$GPGGA') or line.startswith('$GNGGA'):
+                    # print(line)
                     msg = pynmea2.parse(line)
+                    self.get_logger().info('Publishing GPS Info: "%s"' % str(msg))
                     gps_msg = NavSatFix()
                     gps_msg.header.stamp = self.get_clock().now().to_msg()
                     gps_msg.header.frame_id = "gps"
                     gps_msg.latitude = msg.latitude
                     gps_msg.longitude = msg.longitude
-                    gps_msg.altitude = msg.altitude if hasattr(msg, 'altitude') else 0
+                    gps_msg.altitude = float(msg.altitude) if hasattr(msg, 'altitude') and msg.altitude else 0.0
                     self.publisher_.publish(gps_msg)
                     self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
         except pynmea2.ParseError as e:
@@ -53,7 +54,7 @@ class GPSPublisher_TCP(Node):
         super().__init__('gps_subpub')
         self.publisher_ = self.create_publisher(NavSatFix, 'gps', 10)
         self.ip_address = "192.168.42.1"  # RS IP:192.168.0.222 , port: 9001 ---or---- IP:192.168.42.1 
-        self.port = 9000
+        self.port = 9001
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.sock.connect((self.ip_address, self.port))
@@ -65,33 +66,31 @@ class GPSPublisher_TCP(Node):
         self.timer = self.create_timer(time_period, self.read_and_publish_gps_info)
         
     def read_and_publish_gps_info(self):
-        self.get_logger().info('In read_and_publish_gps_info...')
         try:
             data = self.sock.recv(1024)
             if data:
-                print(data)
-                lines = data.decode("utf-8").split('\r\n')
-                for line in lines:
-                    if line.startswith('$GPGGA'):
-                        msg = pynmea2.parse(line)
-                        gps_msg = NavSatFix()
-                        gps_msg.header.stamp = self.get_clock().now().to_msg()
-                        gps_msg.header.frame_id = "gps"
-                        gps_msg.latitude = msg.latitude
-                        gps_msg.longitude = msg.longitude
-                        gps_msg.altitude = msg.altitude
-                        self.publisher_.publish(gps_msg)
-                        self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
-            else:
-                self.get_logger().info('Waiting for GPS data...')
-        except socket.error as err:
-            self.get_logger().error('Failed to receive data from {}:{}. Error: {}'.format(self.ip_address, self.port, str(err)))
+                # print(data)
+                line = data.decode("utf-8").rstrip()
+                if line.startswith('$GPGGA') or line.startswith('$GNGGA'):
+                    # print(line)
+                    msg = pynmea2.parse(line)
+                    self.get_logger().info('Publishing GPS Info: "%s"' % str(msg))
+                    gps_msg = NavSatFix()
+                    gps_msg.header.stamp = self.get_clock().now().to_msg()
+                    gps_msg.header.frame_id = "gps"
+                    gps_msg.latitude = msg.latitude
+                    gps_msg.longitude = msg.longitude
+                    gps_msg.altitude = float(msg.altitude) if hasattr(msg, 'altitude') and msg.altitude else 0.0
+                    self.publisher_.publish(gps_msg)
+                    self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
+        except pynmea2.ParseError as e:
+            self.get_logger().error('Failed to parse NMEA sentence. Error: {}'.format(str(e)))
 
 
 def main(args=None):
     rclpy.init(args=args)
 
-    # gps_publisher = GPSPublisher_TCP()
+    # gps_publisher = GPSPublisher_TCP() # TCP/IP is very unstable with EMLID 
     gps_publisher = GPSPublisher_ser()
 
     rclpy.spin(gps_publisher)

@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'sensors'
+package_name = 'rtk_gnss'
 
 setup(
     name=package_name,
@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'RTK_GPS = sensors.RTK_GPS:main',
+            'RTK_GNSS = scripts.RTK_GNSS:main',
         ],
     },
 )

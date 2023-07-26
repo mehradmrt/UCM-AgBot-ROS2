@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'RTK_GNSS = scripts.RTK_GNSS:main',
+            'RTK_GNSS = rtk_gnss.RTK_GNSS:main',
         ],
     },
 )

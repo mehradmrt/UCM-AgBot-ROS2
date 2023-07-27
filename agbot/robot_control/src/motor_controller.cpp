@@ -1,10 +1,11 @@
 #include <memory>
 #include <chrono>
-#include <thread>  // Include for std::thread
+#include <thread>
 
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "motor_cmds.hpp"
+
 
 class MotorController : public rclcpp::Node
 {
@@ -87,7 +88,7 @@ private:
   void send_data_continuously() {
     while (run_data_sending) {
       robot_->sending_data();
-      std::this_thread::sleep_for(std::chrono::milliseconds(20));  // Sleep to control rate
+    //   std::this_thread::sleep_for(std::chrono::milliseconds(20));  // Sleep to control rate
     }
   }
 

@@ -27,8 +27,6 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-                'path_control = robot_bringup.path_control:main',
-            	'motor_control = robot_bringup.motor_control:main',
         ],
     },
 )

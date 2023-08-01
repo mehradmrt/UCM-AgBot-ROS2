@@ -62,10 +62,22 @@ public:
     data_[11] = state;
   }
 
+  void set_neutral()
+  {
+    data_={0x08, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x00, 
+      0x00, 0x00, 
+      0x00, 0x38};
+  }
+
+  int rotation_check()
+  {
+    return data_[11];
+  }
+
   void sending_data()
   {
     boost::asio::write(socket_, boost::asio::buffer(data_));
-    // std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
     std::cout << "Sending data: ";
     for(const auto &value : data_)
@@ -80,13 +92,11 @@ private:
   boost::asio::ip::tcp::socket socket_;
   std::string server_;
   int port_;
-
   int lift_speed_;
   int lift_ctrl_;
   int left_motor_speed_;
   int right_motor_speed_;
   int motor_rotation_ctrl_;
-
   std::array<unsigned char, 13> data_;
 };
 

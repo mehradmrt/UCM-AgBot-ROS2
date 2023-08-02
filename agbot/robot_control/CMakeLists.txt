@@ -28,14 +28,10 @@ include_directories(include ${Boost_INCLUDE_DIRS})
 add_executable(motor_controller src/motor_controller.cpp)
 ament_target_dependencies(motor_controller rclcpp std_msgs geometry_msgs)
 
-add_executable(motor_datasender src/motor_datasender.cpp)
-target_link_libraries(motor_datasender ${CMAKE_THREAD_LIBS_INIT}) # Link pthreads
-
 target_link_libraries(motor_controller ${Boost_LIBRARIES})
 
 install(TARGETS
   motor_controller
-  motor_datasender
   DESTINATION lib/${PROJECT_NAME}
 )
 

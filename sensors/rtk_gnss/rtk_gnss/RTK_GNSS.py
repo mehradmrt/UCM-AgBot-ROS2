@@ -8,7 +8,7 @@ from sensor_msgs.msg import NavSatFix
 class GPSPublisher_ser(Node):
     def __init__(self):
         super().__init__('gps_subpub')
-        self.publisher_ = self.create_publisher(NavSatFix, 'gps', 10)
+        self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
 
         self.declare_parameter("serial_port", "/dev/ttyACM0")  # Default value
         self.declare_parameter("baudrate", 115200)  # Default value
@@ -39,7 +39,7 @@ class GPSPublisher_ser(Node):
                     self.get_logger().info('Publishing GPS Info: "%s"' % str(msg))
                     gps_msg = NavSatFix()
                     gps_msg.header.stamp = self.get_clock().now().to_msg()
-                    gps_msg.header.frame_id = "gps"
+                    gps_msg.header.frame_id = "gps_link"
                     gps_msg.latitude = msg.latitude
                     gps_msg.longitude = msg.longitude
                     gps_msg.altitude = float(msg.altitude) if hasattr(msg, 'altitude') and msg.altitude else 0.0

@@ -58,7 +58,7 @@
         </geometry>
         </collision>
 
-        <!-- <xacro:box_inertia m="200" w="${base_width}" d="${base_length}" h="${base_height}"/> -->
+        <xacro:box_inertia m="200" w="${base_width}" d="${base_length}" h="${base_height}"/>
     </link>
   
    <!-- Robot Footprint -->
@@ -87,7 +87,7 @@
         <box size="${base_length} ${base_width} ${plate_height}"/>
       </geometry>
     </collision>
-    <xacro:box_inertia m="100" w="${base_width}" d="${base_length}" h="${plate_height}"/>
+    <xacro:box_inertia m="10" w="${base_width}" d="${base_length}" h="${plate_height}"/>
   </link>
 
   <!-- Plate to Base joint -->
@@ -115,7 +115,7 @@
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
         </geometry>
       </collision>
-      <xacro:cylinder_inertia m="20" r="${wheel_radius}" h="${wheel_width}"/>
+      <xacro:cylinder_inertia m="25" r="${wheel_radius}" h="${wheel_width}"/>
     </link>
 
     <!-- Wheel joint -->
@@ -217,7 +217,7 @@
             <color rgba="0.5 0.5 .5 1.0"/>
         </material>
         </visual>
-        <xacro:box_inertia m="1" w="${gps_width}" d="${gps_length}" h="${gps_height}"/>
+        <xacro:box_inertia m="2" w="${gps_width}" d="${gps_length}" h="${gps_height}"/>
     </link>
 
     <!-- GPS Joint -->
@@ -237,7 +237,7 @@
             <color rgba="0 0 0 1.0"/>
         </material>
         </visual>
-        <xacro:cylinder_inertia m="1" r="${lidar_radius}" h="${lidar_length}"/>
+        <xacro:cylinder_inertia m="0.7" r="${lidar_radius}" h="${lidar_length}"/>
     </link>
 
     <!-- Lidar Joint -->
@@ -257,14 +257,14 @@
             <color rgba="0.5 0.2 .2 1.0"/>
         </material>
         </visual>
-        <xacro:box_inertia m="1" w="${gps_width}" d="${gps_length}" h="${gps_height}"/>
+        <xacro:box_inertia m="0.2" w="${gps_width}" d="${gps_length}" h="${gps_height}"/>
     </link>
 
     <!-- imu Joint -->
     <joint name="imu_joint" type="fixed">
         <parent link="plate_link"/>
         <child link="imu_link"/>
-        <origin xyz="${base_length/2 - imu_length/2 } ${-base_width/2 + imu_width/2} ${plate_height/2 + imu_height/2}" rpy="3.1415 0 0"/>
+        <origin xyz="${base_length/2 - imu_length/2 } ${-base_width/2 + imu_width/2} ${plate_height/2 + imu_height/2}" rpy="0 0 0"/>
     </joint>
 
 </robot>

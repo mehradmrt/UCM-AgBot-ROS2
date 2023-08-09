@@ -29,6 +29,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'robot_state_publisher_costum = robot_bringup.joint_state:main',
         ],
     },
 )

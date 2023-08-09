@@ -23,7 +23,7 @@ class GPSPublisher_ser(Node):
             self.get_logger().error('Failed to connect to {}. Error: {}'.format(self.serial_port, str(err)))
             return
 
-        time_period = 0.2
+        time_period = 0.1
         self.timer = self.create_timer(time_period, self.read_and_publish_gps_info)
 
     def read_and_publish_gps_info(self):

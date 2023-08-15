@@ -63,22 +63,22 @@ def generate_launch_description():
         parameters=[{'robot_description': robot_description}]
         ),
         
-        # Node(
-        #     package='joint_state_publisher',
-        #     executable='joint_state_publisher',
-        #     # condition=UnlessCondition(LaunchConfiguration('gui'))
-        # ),
-
-        # Node(
-        #     package='joint_state_publisher_gui',
-        #     executable='joint_state_publisher_gui',
-        #     condition=IfCondition(LaunchConfiguration('gui'))
-        # )
+        Node(
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            # condition=UnlessCondition(LaunchConfiguration('gui'))
+        ),
 
         Node(
-            package='robot_bringup',
-            executable='robot_state_publisher_costum',
-            name='robot_state_publisher_costum',
-        ),
+            package='joint_state_publisher_gui',
+            executable='joint_state_publisher_gui',
+            condition=IfCondition(LaunchConfiguration('gui'))
+        )
+
+        # Node(
+        #     package='robot_bringup',
+        #     executable='robot_state_publisher_costum',
+        #     name='robot_state_publisher_costum',
+        # ),
 
     ])

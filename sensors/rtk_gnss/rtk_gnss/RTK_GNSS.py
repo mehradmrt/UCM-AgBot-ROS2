@@ -23,7 +23,7 @@ class GPSPublisher_ser(Node):
             self.get_logger().error('Failed to connect to {}. Error: {}'.format(self.serial_port, str(err)))
             return
 
-        time_period = 0.1
+        time_period = 0.2
         self.timer = self.create_timer(time_period, self.read_and_publish_gps_info)
 
     def read_and_publish_gps_info(self):
@@ -52,46 +52,73 @@ class GPSPublisher_ser(Node):
 class GPSPublisher_TCP(Node):
     def __init__(self):
         super().__init__('gps_subpub')
-        self.publisher_ = self.create_publisher(NavSatFix, 'gps', 10)
-        self.ip_address = "192.168.42.1"  # RS IP:192.168.0.222 , port: 9001 ---or---- IP:192.168.42.1 
+        self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
+        self.ip_address = "192.168.0.223"  # RS IP:192.168.0.222(RS+) and .223(RS2) 
         self.port = 9001
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sensor_timeout = 2  # seconds
+        self.last_received_time = None
+
+        self.establish_connection()
+
+        self.data_timer_period = 0.2
+        self.data_timer = self.create_timer(self.data_timer_period, self.read_and_publish_gps_info)
+
+        self.reconnect_timer_period = 1  # seconds
+        self.reconnect_timer = self.create_timer(self.reconnect_timer_period, self.check_connection)
+
+    def establish_connection(self):
         try:
             self.sock.connect((self.ip_address, self.port))
             self.get_logger().info('Successfully connected to {}:{}'.format(self.ip_address, self.port))
+            self.last_received_time = self.get_clock().now().nanoseconds
         except socket.error as err:
-            self.get_logger().error('Failed to connect to {}:{}. Error: {}'.format(self.ip_address, self.port, str(err)))
-            return
-        time_period = 1
-        self.timer = self.create_timer(time_period, self.read_and_publish_gps_info)
-        
+            self.get_logger().warn('No route to host {}:{}. Retrying ...'.format(self.ip_address, self.port))
+    
+    def reset_connection(self):
+        self.sock.close()
+        self.sock = None
+        self.sock = self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.get_logger().warn('Connection is reset... {}:{}'.format(self.ip_address, self.port))
+
+    def check_connection(self):
+        current_time = self.get_clock().now().nanoseconds
+        if self.last_received_time and (current_time - self.last_received_time) * 1e-9 > self.sensor_timeout:
+            print((current_time-self.last_received_time)* 1e-9)
+            self.get_logger().warn('Sensor timeout detected. Attempting to reconnect...')
+            self.reset_connection()
+            self.establish_connection()
+        elif not self.last_received_time:
+            self.reset_connection()
+            self.establish_connection()
+
     def read_and_publish_gps_info(self):
         try:
             data = self.sock.recv(1024)
             if data:
-                # print(data)
-                line = data.decode("utf-8").rstrip()
-                if line.startswith('$GPGGA') or line.startswith('$GNGGA'):
-                    # print(line)
-                    msg = pynmea2.parse(line)
-                    self.get_logger().info('Publishing GPS Info: "%s"' % str(msg))
-                    gps_msg = NavSatFix()
-                    gps_msg.header.stamp = self.get_clock().now().to_msg()
-                    gps_msg.header.frame_id = "gps"
-                    gps_msg.latitude = msg.latitude
-                    gps_msg.longitude = msg.longitude
-                    gps_msg.altitude = float(msg.altitude) if hasattr(msg, 'altitude') and msg.altitude else 0.0
-                    self.publisher_.publish(gps_msg)
-                    self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
-        except pynmea2.ParseError as e:
-            self.get_logger().error('Failed to parse NMEA sentence. Error: {}'.format(str(e)))
+                self.last_received_time = self.get_clock().now().nanoseconds
+                lines = data.decode("utf-8").rstrip().split('\r\n')
+                for line in lines:
+                    if line.startswith('$GPGGA') or line.startswith('$GNGGA'):
+                        msg = pynmea2.parse(line)
+                        gps_msg = NavSatFix()
+                        gps_msg.header.stamp = self.get_clock().now().to_msg()
+                        gps_msg.header.frame_id = "gps"
+                        gps_msg.latitude = msg.latitude 
+                        gps_msg.longitude = msg.longitude
+                        gps_msg.altitude = float(msg.altitude) if hasattr(msg, 'altitude') and msg.altitude else 0.0
+                        self.publisher_.publish(gps_msg)
+                        # self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
+        except socket.error as se:
+            self.get_logger().error('Socket error: {}'.format(str(se)))
+            self.check_connection()
 
 
 def main(args=None):
     rclpy.init(args=args)
 
-    # gps_publisher = GPSPublisher_TCP() # TCP/IP is very unstable with EMLID 
-    gps_publisher = GPSPublisher_ser()
+    gps_publisher = GPSPublisher_TCP() 
+    # gps_publisher = GPSPublisher_ser()
 
     rclpy.spin(gps_publisher)
 

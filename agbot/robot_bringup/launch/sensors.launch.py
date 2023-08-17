@@ -17,7 +17,7 @@ def generate_launch_description():
     imu = DeclareLaunchArgument('imu', default_value='true', description='IMU sensor node')
     gnss = DeclareLaunchArgument('gnss', default_value='true', description='RTK/GNSS sensor node')
     lidar2d = DeclareLaunchArgument('lidar2d', default_value='true', description='Lidar2D sensor node')
-    realsense = DeclareLaunchArgument('realsense', default_value='true', description='Realsense d435i sensor node')
+    realsense = DeclareLaunchArgument('realsense', default_value='false', description='Realsense d435i sensor node')
 
     launch_actions = [
         imu,

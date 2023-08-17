@@ -53,7 +53,7 @@ class GPSPublisher_TCP(Node):
     def __init__(self):
         super().__init__('gps_subpub')
         self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
-        self.ip_address = "192.168.0.223"  # RS IP:192.168.0.222(RS+) and .223(RS2) 
+        self.ip_address = "192.168.0.213"  # RS IP:192.168.0.222(RS+) and [.223(RS2) for robot_AP] and [.213 for ehsani_lab] 
         self.port = 9001
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sensor_timeout = 2  # seconds
@@ -100,18 +100,25 @@ class GPSPublisher_TCP(Node):
                 lines = data.decode("utf-8").rstrip().split('\r\n')
                 for line in lines:
                     if line.startswith('$GPGGA') or line.startswith('$GNGGA'):
-                        msg = pynmea2.parse(line)
-                        gps_msg = NavSatFix()
-                        gps_msg.header.stamp = self.get_clock().now().to_msg()
-                        gps_msg.header.frame_id = "gps"
-                        gps_msg.latitude = msg.latitude 
-                        gps_msg.longitude = msg.longitude
-                        gps_msg.altitude = float(msg.altitude) if hasattr(msg, 'altitude') and msg.altitude else 0.0
-                        self.publisher_.publish(gps_msg)
-                        # self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
+                        try:
+                            msg = pynmea2.parse(line)
+                            gps_msg = NavSatFix()
+                            gps_msg.header.stamp = self.get_clock().now().to_msg()
+                            gps_msg.header.frame_id = "gps_link"
+                            gps_msg.latitude = msg.latitude 
+                            gps_msg.longitude = msg.longitude
+                            gps_msg.altitude = float(msg.altitude) if hasattr(msg, 'altitude') and msg.altitude else 0.0
+                            self.publisher_.publish(gps_msg)
+                            # self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
+                        except Exception as e:
+                            self.get_logger().error('There is an error: {}'.format(str(se)))
+                            self.check_connection()
+
         except socket.error as se:
             self.get_logger().error('Socket error: {}'.format(str(se)))
             self.check_connection()
+        
+
 
 
 def main(args=None):

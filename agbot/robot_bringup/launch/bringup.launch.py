@@ -34,11 +34,11 @@ def generate_launch_description():
             name='gui', default_value='true', choices=['true', 'false'],
             description='Flag to enable joint_state_publisher_gui'),
 
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            arguments=['-d', str(default_rviz_config_path)],
-        ),
+        # Node(
+        #     package='rviz2',
+        #     executable='rviz2',
+        #     arguments=['-d', str(default_rviz_config_path)],
+        # ),
 
         Node(
             package='robot_localization',
@@ -69,16 +69,16 @@ def generate_launch_description():
             # condition=UnlessCondition(LaunchConfiguration('gui'))
         ),
 
-        Node(
-            package='joint_state_publisher_gui',
-            executable='joint_state_publisher_gui',
-            condition=IfCondition(LaunchConfiguration('gui'))
-        )
+        # Node(
+        #     package='joint_state_publisher_gui',
+        #     executable='joint_state_publisher_gui',
+        #     condition=IfCondition(LaunchConfiguration('gui'))
+        # )
 
         # Node(
         #     package='robot_bringup',
         #     executable='robot_state_publisher_costum',
         #     name='robot_state_publisher_costum',
         # ),
-
+        
     ])

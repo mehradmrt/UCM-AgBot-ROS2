@@ -18,7 +18,8 @@ setup(
         (os.path.join('share', package_name,'urdf'), glob('urdf/*')),
         (os.path.join('share', package_name,'rviz'), glob('rviz/*')),
         (os.path.join('share', package_name,'config'), glob('config/*')),
-        (os.path.join('share', package_name,'params'), glob('params/*'))
+        (os.path.join('share', package_name,'params'), glob('params/*')),
+        (os.path.join('share', package_name,'maps'), glob('maps/*'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,

@@ -30,9 +30,9 @@ def generate_launch_description():
             description='Use simulation time'
         ),
 
-        DeclareLaunchArgument(
-            name='gui', default_value='true', choices=['true', 'false'],
-            description='Flag to enable joint_state_publisher_gui'),
+        # DeclareLaunchArgument(
+        #     name='gui', default_value='true', choices=['true', 'false'],
+        #     description='Flag to enable joint_state_publisher_gui'),
 
         # Node(
         #     package='rviz2',

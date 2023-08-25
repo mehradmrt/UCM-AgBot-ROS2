@@ -110,10 +110,15 @@ class GPSPublisher_TCP(Node):
                             gps_msg.altitude = float(msg.altitude) if hasattr(msg, 'altitude') and msg.altitude else 0.0
                             self.publisher_.publish(gps_msg)
                             # self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
-                        except Exception as e:
-                            self.get_logger().error('There is an error: {}'.format(str(se)))
+                        except pynmea2.ChecksumError:
+                            self.get_logger().warn('Invalid NMEA sentence checksum. Ignoring sentence.')
                             self.check_connection()
-
+                        except pynmea2.ParseError as e:
+                            self.get_logger().error('Failed to parse NMEA sentence. Error: {}'.format(str(e)))
+                            self.check_connection()
+                        except ValueError as ve:
+                            self.get_logger().warn(f"ValueError encountered: {ve}. Ignoring sentence.")
+                            self.check_connection()
         except socket.error as se:
             self.get_logger().error('Socket error: {}'.format(str(se)))
             self.check_connection()

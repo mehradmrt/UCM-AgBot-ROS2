@@ -34,11 +34,11 @@ def generate_launch_description():
         #     name='gui', default_value='true', choices=['true', 'false'],
         #     description='Flag to enable joint_state_publisher_gui'),
 
-        # Node(
-        #     package='rviz2',
-        #     executable='rviz2',
-        #     arguments=['-d', str(default_rviz_config_path)],
-        # ),
+        Node(
+            package='rviz2',
+            executable='rviz2',
+            arguments=['-d', str(default_rviz_config_path)],
+        ),
 
         Node(
             package='robot_localization',
@@ -46,15 +46,28 @@ def generate_launch_description():
             name='navsat_transform',
             output='screen',
             parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
-            # remappings=[('imu/data', 'vectornav/imu')]
+            remappings=[('imu/data', 'vectornav/imu_uncompensated'),
+                        ('gps/fix', 'gps/data'), 
+                        ('gps/filtered', 'gps/filtered'),
+                        ('odometry/gps', 'odometry/gps'),
+                        ('odometry/filtered', 'odometry/global')] 
         ),
-
         Node(
-            package='robot_localization',
-            executable='ekf_node',
-            name='ekf_filter_node_map',
+            package='robot_localization', 
+            executable='ekf_node', 
+            name='ekf_filter_node_odom',
+	        output='screen',
             parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
-        ),
+            remappings=[('odometry/filtered', 'odometry/local')]           
+           ),
+        Node(
+            package='robot_localization', 
+            executable='ekf_node', 
+            name='ekf_filter_node_map',
+	        output='screen',
+            parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
+            remappings=[('odometry/filtered', 'odometry/global')]
+           ),           
 
         Node(
         package='robot_state_publisher',

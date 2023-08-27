@@ -40,6 +40,8 @@ def generate_launch_description():
             arguments=['-d', str(default_rviz_config_path)],
         ),
 
+
+
         Node(
             package='robot_localization',
             executable='navsat_transform_node',
@@ -79,14 +81,13 @@ def generate_launch_description():
         Node(
             package='joint_state_publisher',
             executable='joint_state_publisher',
-            # condition=UnlessCondition(LaunchConfiguration('gui'))
+            name='joint_state_publisher'
         ),
-
-        # Node(
-        #     package='joint_state_publisher_gui',
-        #     executable='joint_state_publisher_gui',
-        #     condition=IfCondition(LaunchConfiguration('gui'))
-        # )
+        Node(
+            package='robot_bringup',
+            executable='wheel_odometry_pub',
+            name='wheel_odometry_pub',
+        ),
 
         # Node(
         #     package='robot_bringup',

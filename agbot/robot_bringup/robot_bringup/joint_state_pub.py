@@ -17,7 +17,7 @@ class StatePublisher(Node):
         self.msg = Twist()
 
         qos_profile = QoSProfile(depth=10)
-        self.subscription = self.create_subscription(Odometry, 'odometry/filtered', self.listener_callback, qos_profile)
+        self.subscription = self.create_subscription(Odometry, 'wheel/odometry', self.listener_callback, qos_profile)
         self.joint_pub = self.create_publisher(JointState, 'joint_states', qos_profile)
 
         self.broadcaster = TransformBroadcaster(self, qos=qos_profile)

@@ -17,22 +17,22 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(gazebo_ros_pkgs REQUIRED)
 find_package(gazebo_ros REQUIRED)
-find_package(gazebo_dev REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(robot_state_publisher REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(tf2_geometry_msgs REQUIRED)
-find_package(rviz_common REQUIRED)
-find_package(sensor_msgs REQUIRED)
 
 # Install launch files.
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
+)
+
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME}/launch
 )
 
-# Install RViz config files.
+install(DIRECTORY params/
+  DESTINATION share/${PROJECT_NAME}/params
+)
+
 install(DIRECTORY rviz/
   DESTINATION share/${PROJECT_NAME}/rviz
 )
@@ -40,6 +40,11 @@ install(DIRECTORY rviz/
 install(DIRECTORY urdf_sim/
   DESTINATION share/${PROJECT_NAME}/urdf_sim
 )
+
+install(DIRECTORY worlds/
+  DESTINATION share/${PROJECT_NAME}/worlds
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

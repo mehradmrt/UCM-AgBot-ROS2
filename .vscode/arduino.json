@@ -1,0 +1,6 @@
+{
+    "board": "arduino:megaavr:uno2018",
+    "port": "/dev/ttyACM0",
+    "sketch": "sensors/encoders/encoders.ino",
+    "configuration": "mode=on"
+}

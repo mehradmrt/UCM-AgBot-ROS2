@@ -28,8 +28,11 @@ def generate_launch_description():
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
+            name='robot_state_publisher',
+            namespace='',
+            output='screen',
             parameters=[{'use_sim_time': use_sim_time, 'robot_description': robot_desc}],
             remappings=remappings,
-            arguments=[urdf_path]
+            arguments=[robot_desc]
             )
     ])

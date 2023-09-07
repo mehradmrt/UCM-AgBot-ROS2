@@ -45,5 +45,3 @@ void ISR_B() {
     count--;
   }
 }
-
-

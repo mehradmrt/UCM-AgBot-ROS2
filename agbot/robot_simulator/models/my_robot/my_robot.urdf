@@ -120,9 +120,6 @@
     <origin rpy="0 0 0" xyz="0 -0.4 -0.24"/>
     <axis xyz="0 1 0"/>
   </joint>
-  <!-- Create left and right wheel -->
-  <!-- <xacro:wheel_dummy name="left_wheel_dummy" y="${base_width/2 - wheel_width/2}"/>
-  <xacro:wheel_dummy name="right_wheel_dummy" y="${-base_width/2 + wheel_width/2}"/> -->
   <link name="left_wheel_box_link">
     <visual>
       <geometry>
@@ -146,7 +143,7 @@
   <joint name="left_wheel_box_joint" type="fixed">
     <parent link="base_link"/>
     <child link="left_wheel_box_link"/>
-    <origin rpy="1.5707963267948966 0 0" xyz="0 0.4 -0.24"/>
+    <origin rpy="1.5707963267948966 0 0" xyz="0 0.401 -0.24"/>
   </joint>
   <link name="right_wheel_box_link">
     <visual>
@@ -171,7 +168,7 @@
   <joint name="right_wheel_box_joint" type="fixed">
     <parent link="base_link"/>
     <child link="right_wheel_box_link"/>
-    <origin rpy="1.5707963267948966 0 0" xyz="0 -0.4 -0.24"/>
+    <origin rpy="1.5707963267948966 0 0" xyz="0 -0.401 -0.24"/>
   </joint>
   <link name="left_wheel_additional_f_wheel_link">
     <visual>
@@ -345,13 +342,43 @@
   </gazebo>
   <gazebo reference="right_wheel_link">
     <material>Gazebo/Black</material>
-    <mu1>10000</mu1>
-    <mu2>10000</mu2>
+    <mu1>8000</mu1>
+    <mu2>8000</mu2>
   </gazebo>
   <gazebo reference="left_wheel_link">
     <material>Gazebo/Black</material>
-    <mu1>10000</mu1>
-    <mu2>10000</mu2>
+    <mu1>8000</mu1>
+    <mu2>8000</mu2>
+  </gazebo>
+  <gazebo reference="right_wheel_box_link">
+    <material>Gazebo/Black</material>
+    <mu1>0.1</mu1>
+    <mu2>0.1</mu2>
+  </gazebo>
+  <gazebo reference="left_wheel_box_link">
+    <material>Gazebo/Black</material>
+    <mu1>0.1</mu1>
+    <mu2>0.1</mu2>
+  </gazebo>
+  <gazebo reference="right_wheel_additional_r_wheel_link">
+    <material>Gazebo/Black</material>
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+  </gazebo>
+  <gazebo reference="left_wheel_additional_r_wheel_link">
+    <material>Gazebo/Black</material>
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+  </gazebo>
+  <gazebo reference="right_wheel_additional_f_wheel_link">
+    <material>Gazebo/Black</material>
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+  </gazebo>
+  <gazebo reference="left_wheel_additional_f_wheel_link">
+    <material>Gazebo/Black</material>
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
   </gazebo>
   <gazebo>
     <plugin filename="libgazebo_ros_diff_drive.so" name="differential_drive_controller">

@@ -8,9 +8,9 @@
           <ixx>65.0051</ixx>
           <ixy>-0.242417</ixy>
           <ixz>-0.513369</ixz>
-          <iyy>86.0356</iyy>
+          <iyy>86.0756</iyy>
           <iyz>-0.587528</iyz>
-          <izz>33.7841</izz>
+          <izz>33.8241</izz>
         </inertia>
       </inertial>
       <collision name='base_link_collision'>
@@ -22,30 +22,63 @@
         </geometry>
       </collision>
       <collision name='base_link_fixed_joint_lump__left_wheel_box_link_collision_1'>
-        <pose>0 0.4 -0.24 1.5708 -0 0</pose>
+        <pose>0 0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <box>
             <size>1.25 0.4 0.23</size>
           </box>
         </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode>
+              <mu>0.1</mu>
+              <mu2>0.1</mu2>
+            </ode>
+          </friction>
+        </surface>
       </collision>
       <collision name='base_link_fixed_joint_lump__left_wheel_additional_f_wheel_link_collision_2'>
-        <pose>0.625 0.4 -0.24 1.5708 -0 0</pose>
+        <pose>0.625 0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <cylinder>
             <length>0.23</length>
             <radius>0.2</radius>
           </cylinder>
         </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode>
+              <mu>0.2</mu>
+              <mu2>0.2</mu2>
+            </ode>
+          </friction>
+        </surface>
       </collision>
       <collision name='base_link_fixed_joint_lump__left_wheel_additional_r_wheel_link_collision_3'>
-        <pose>-0.625 0.4 -0.24 1.5708 -0 0</pose>
+        <pose>-0.625 0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <cylinder>
             <length>0.23</length>
             <radius>0.2</radius>
           </cylinder>
         </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode>
+              <mu>0.2</mu>
+              <mu2>0.2</mu2>
+            </ode>
+          </friction>
+        </surface>
       </collision>
       <collision name='base_link_fixed_joint_lump__plate_link_collision_4'>
         <pose>0 0 0.2 0 -0 0</pose>
@@ -64,30 +97,63 @@
         </surface>
       </collision>
       <collision name='base_link_fixed_joint_lump__right_wheel_box_link_collision_5'>
-        <pose>0 -0.4 -0.24 1.5708 -0 0</pose>
+        <pose>0 -0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <box>
             <size>1.25 0.4 0.23</size>
           </box>
         </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode>
+              <mu>0.1</mu>
+              <mu2>0.1</mu2>
+            </ode>
+          </friction>
+        </surface>
       </collision>
       <collision name='base_link_fixed_joint_lump__right_wheel_additional_f_wheel_link_collision_6'>
-        <pose>0.625 -0.4 -0.24 1.5708 -0 0</pose>
+        <pose>0.625 -0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <cylinder>
             <length>0.23</length>
             <radius>0.2</radius>
           </cylinder>
         </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode>
+              <mu>0.2</mu>
+              <mu2>0.2</mu2>
+            </ode>
+          </friction>
+        </surface>
       </collision>
       <collision name='base_link_fixed_joint_lump__right_wheel_additional_r_wheel_link_collision_7'>
-        <pose>-0.625 -0.4 -0.24 1.5708 -0 0</pose>
+        <pose>-0.625 -0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <cylinder>
             <length>0.23</length>
             <radius>0.2</radius>
           </cylinder>
         </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode>
+              <mu>0.2</mu>
+              <mu2>0.2</mu2>
+            </ode>
+          </friction>
+        </surface>
       </collision>
       <visual name='base_link_visual'>
         <pose>0 0 0 0 -0 0</pose>
@@ -98,30 +164,48 @@
         </geometry>
       </visual>
       <visual name='base_link_fixed_joint_lump__left_wheel_box_link_visual_1'>
-        <pose>0 0.4 -0.24 1.5708 -0 0</pose>
+        <pose>0 0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <box>
             <size>1.25 0.4 0.23</size>
           </box>
         </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
       </visual>
       <visual name='base_link_fixed_joint_lump__left_wheel_additional_f_wheel_link_visual_2'>
-        <pose>0.625 0.4 -0.24 1.5708 -0 0</pose>
+        <pose>0.625 0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <cylinder>
             <length>0.23</length>
             <radius>0.2</radius>
           </cylinder>
         </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
       </visual>
       <visual name='base_link_fixed_joint_lump__left_wheel_additional_r_wheel_link_visual_3'>
-        <pose>-0.625 0.4 -0.24 1.5708 -0 0</pose>
+        <pose>-0.625 0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <cylinder>
             <length>0.23</length>
             <radius>0.2</radius>
           </cylinder>
         </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
       </visual>
       <visual name='base_link_fixed_joint_lump__plate_link_visual_4'>
         <pose>0 0 0.2 0 -0 0</pose>
@@ -163,30 +247,48 @@
         </geometry>
       </visual>
       <visual name='base_link_fixed_joint_lump__right_wheel_box_link_visual_8'>
-        <pose>0 -0.4 -0.24 1.5708 -0 0</pose>
+        <pose>0 -0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <box>
             <size>1.25 0.4 0.23</size>
           </box>
         </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
       </visual>
       <visual name='base_link_fixed_joint_lump__right_wheel_additional_f_wheel_link_visual_9'>
-        <pose>0.625 -0.4 -0.24 1.5708 -0 0</pose>
+        <pose>0.625 -0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <cylinder>
             <length>0.23</length>
             <radius>0.2</radius>
           </cylinder>
         </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
       </visual>
       <visual name='base_link_fixed_joint_lump__right_wheel_additional_r_wheel_link_visual_10'>
-        <pose>-0.625 -0.4 -0.24 1.5708 -0 0</pose>
+        <pose>-0.625 -0.401 -0.24 1.5708 -0 0</pose>
         <geometry>
           <cylinder>
             <length>0.23</length>
             <radius>0.2</radius>
           </cylinder>
         </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
       </visual>
       <sensor name='imu_sensor' type='imu'>
         <plugin name='imu_plugin' filename='libgazebo_ros_imu_sensor.so'>
@@ -333,8 +435,8 @@
           </contact>
           <friction>
             <ode>
-              <mu>10000</mu>
-              <mu2>10000</mu2>
+              <mu>8000</mu>
+              <mu2>8000</mu2>
             </ode>
           </friction>
         </surface>
@@ -399,8 +501,8 @@
           </contact>
           <friction>
             <ode>
-              <mu>10000</mu>
-              <mu2>10000</mu2>
+              <mu>8000</mu>
+              <mu2>8000</mu2>
             </ode>
           </friction>
         </surface>

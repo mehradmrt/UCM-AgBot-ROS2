@@ -134,28 +134,6 @@
   <xacro:wheel name="right_wheel" y="${-base_width/2 + wheel_width/2}"/>
 
 
-
-
-
-  <!-- dummy for the box -->
-  <xacro:macro name="wheel_dummy" params="name y">
-    <link name="${name}_link">
-    </link>
-
-    <!-- dummy joint -->
-    <joint name="${name}_joint" type="fixed">
-      <parent link="base_link"/>
-      <child link="${name}_link"/>
-      <origin xyz="0 ${y} ${-wheel_zoff}" rpy="${pi/2} 0 0"/>
-    </joint>
-  </xacro:macro>
-
-  <!-- Create left and right wheel -->
-  <!-- <xacro:wheel_dummy name="left_wheel_dummy" y="${base_width/2 - wheel_width/2}"/>
-  <xacro:wheel_dummy name="right_wheel_dummy" y="${-base_width/2 + wheel_width/2}"/> -->
-
-
-
   <!-- Box attached to Wheel -->
   <xacro:macro name="wheel_box" params="name y">
     <link name="${name}_box_link">
@@ -183,10 +161,8 @@
   </xacro:macro>
 
   <!-- Create left and right wheel_boxes -->
-  <xacro:wheel_box name="left_wheel" y="${base_width/2 - wheel_width/2}"/>
-  <xacro:wheel_box name="right_wheel" y="${-base_width/2 + wheel_width/2}" />
-
-
+  <xacro:wheel_box name="left_wheel" y="${base_width/2 - wheel_width/2 + 0.001}"/>
+  <xacro:wheel_box name="right_wheel" y="${-base_width/2 + wheel_width/2 -0.001}" />
 
 
 
@@ -268,6 +244,11 @@
           <color rgba="0.5 0.5 .5 1.0"/>
       </material>
       </visual>
+      <collision>
+        <geometry>
+          <box size="${gps_length} ${gps_width} ${gps_height}"/>
+        </geometry>
+      </collision>
       <xacro:box_inertia m="2" w="${gps_width}" d="${gps_length}" h="${gps_height}"/>
   </link>
 
@@ -279,22 +260,27 @@
   </joint>
 
   <!-- Lidar -->
-  <link name="lidar_link">
+  <link name="base_scan">
       <visual>
-      <geometry>
-          <cylinder radius="${lidar_radius}" length="${lidar_length}"/>
-      </geometry>
-      <material name="Black">
-          <color rgba="0 0 0 1.0"/>
-      </material>
+        <geometry>
+            <cylinder radius="${lidar_radius}" length="${lidar_length}"/>
+        </geometry>
+        <material name="Black">
+            <color rgba="0 0 0 1.0"/>
+        </material>
       </visual>
+      <collision>
+          <geometry>
+            <cylinder radius="${lidar_radius}" length="${lidar_length}"/>
+          </geometry>
+      </collision>
       <xacro:cylinder_inertia m="0.7" r="${lidar_radius}" h="${lidar_length}"/>
   </link>
 
   <!-- Lidar Joint -->
-  <joint name="lidar_joint" type="fixed">
+  <joint name="scan_joint" type="fixed">
       <parent link="plate_link"/>
-      <child link="lidar_link"/>
+      <child link="base_scan"/>
       <origin xyz="${base_length/2 - lidar_radius} 0 ${plate_height/2 + lidar_length/2}" rpy="0 0 0"/>
   </joint>
 
@@ -377,7 +363,7 @@
   <gazebo>
     <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
       <ros>
-        <!-- <namespace></namespace> -->
+        <namespace></namespace>
         <remapping>cmd_vel:=cmd_vel</remapping>
       </ros>
       <update_rate>30</update_rate>
@@ -385,41 +371,79 @@
       <right_joint>right_wheel_joint</right_joint>
       <wheel_separation>0.8</wheel_separation>
       <wheel_diameter>0.4</wheel_diameter>
-      <!-- <torque>300</torque> -->
       <max_wheel_torque>2000</max_wheel_torque>
       <max_wheel_acceleration>2.0</max_wheel_acceleration>
       <command_topic>cmd_vel</command_topic>
       <publish_odom>true</publish_odom>
       <publish_odom_tf>false</publish_odom_tf>
-      <publish_wheel_tf>true</publish_wheel_tf>
-      <odometry_topic>odom</odometry_topic>
+      <publish_wheel_tf>false</publish_wheel_tf>
+      <odometry_topic>wheel/odometry</odometry_topic>
       <odometry_frame>odom</odometry_frame>
       <odometry_source>0</odometry_source>
       <robot_base_frame>base_link</robot_base_frame>
     </plugin>
-
-    <!-- <plugin name="joint_state_pub" filename="libgazebo_ros_joint_state_publisher.so">
+    <plugin name="joint_state_pub" filename="libgazebo_ros_joint_state_publisher.so">
       <ros>
         <remapping>~/out:=joint_states</remapping>
       </ros>
       <update_rate>30</update_rate>
       <joint_name>left_wheel_joint</joint_name>
       <joint_name>right_wheel_joint</joint_name>
-    </plugin>   -->
+    </plugin>  
 
   </gazebo>
     
-  <!-- <gazebo reference="gps_link">
-    <sensor type="gps" name="gps_sensor">
+
+
+
+
+  <gazebo reference="gps_link">
+    <sensor name="rtk_gps" type="gps">
+      <always_on>true</always_on>
       <update_rate>5.0</update_rate>
-      <plugin name="gazebo_ros_gps_plugin" filename="libgazebo_ros_gps.so">
-        <topicName>/gps/data</topicName>
-        <velocityTopicName>/gps_velocity</velocityTopicName>
+      <gps>
+        <position_sensing>
+          <horizontal>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>1e-2</stddev>
+            </noise>
+          </horizontal>
+          <vertical>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>1</stddev>
+            </noise>
+          </vertical>
+        </position_sensing>
+      </gps>
+      <plugin name="mobile_rtk_gps" filename="libgazebo_ros_gps_sensor.so">
+        <ros>
+          <remapping>~/out:=gps/fix</remapping>
+          <frame_id>gps_link</frame_id>
+        </ros>
       </plugin>
     </sensor>
+  </gazebo>
+
+
+
+
+  <!-- <gazebo>
+    <plugin name="gps_sim" filename="libhector_gazebo_ros_gps.so">
+      <alwaysOn>1</alwaysOn>
+      <updateRate>200.0</updateRate>
+      <bodyName>gps_link</bodyName>
+      <topicName>gps/fix</topicName>
+      <velocityTopicName>gps/velocity</velocityTopicName>
+      <drift>5.0 5.0 5.0</drift>
+      <gaussianNoise>0.1 0.1 0.1</gaussianNoise>
+      <velocityDrift>0 0 0</velocityDrift>
+      <velocityGaussianNoise>0.1 0.1 0.1</velocityGaussianNoise>
+    </plugin>
   </gazebo> -->
 
-  <gazebo reference="lidar_link">
+  <gazebo reference="base_scan">
     <sensor name="lidar" type="ray">
       <always_on>true</always_on>
       <visualize>true</visualize>
@@ -449,7 +473,7 @@
           <remapping>~/out:=scan</remapping>
         </ros>
         <output_type>sensor_msgs/LaserScan</output_type>
-        <frame_name>lidar_link</frame_name>
+        <frame_name>base_scan</frame_name>
       </plugin>
     </sensor>
   </gazebo>
@@ -458,8 +482,8 @@
     <sensor name="imu_sensor" type="imu">
       <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
         <ros>
-          <namespace>/demo</namespace>
-          <remapping>~/out:=imu</remapping>
+          <namespace></namespace>
+          <remapping>~/out:=vectornav/imu_uncompensated</remapping>
         </ros>
         <initial_orientation_as_reference>false</initial_orientation_as_reference>
       </plugin>

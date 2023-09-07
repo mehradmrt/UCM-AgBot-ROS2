@@ -20,6 +20,12 @@ find_package(ament_cmake REQUIRED)
 find_package(gazebo_ros REQUIRED)
 find_package(robot_state_publisher REQUIRED)
 
+find_package(ament_cmake REQUIRED)
+find_package(nav2_common REQUIRED)
+find_package(navigation2 REQUIRED)
+
+nav2_package()
+
 # Install launch files.
 install(DIRECTORY config/
   DESTINATION share/${PROJECT_NAME}/config
@@ -27,6 +33,14 @@ install(DIRECTORY config/
 
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME}/launch
+)
+
+install(DIRECTORY maps/
+  DESTINATION share/${PROJECT_NAME}/maps
+)
+
+install(DIRECTORY models/
+  DESTINATION share/${PROJECT_NAME}/models
 )
 
 install(DIRECTORY params/

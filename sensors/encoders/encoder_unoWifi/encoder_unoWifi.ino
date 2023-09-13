@@ -5,7 +5,7 @@ int pinB = 3;
 volatile int count = 0;
 int lastCount = 0;
 unsigned long lastTime;
-const unsigned long sampleInterval = 50; // 1 second sampling interval
+const unsigned long sampleInterval = 50; //  milisecond sampling interval
 
 void setup() {
   Serial.begin(9600);

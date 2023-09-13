@@ -17,8 +17,8 @@ def generate_launch_description():
     ekf_config_path = os.path.join(get_package_share_directory('robot_simulator'),'config','ekf.yaml')
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
-    x_pose = LaunchConfiguration('x_pose', default='27.0') 
-    y_pose = LaunchConfiguration('y_pose', default='-21.0')
+    x_pose = LaunchConfiguration('x_pose', default='0.0') # 27.0
+    y_pose = LaunchConfiguration('y_pose', default='0.0') #-21.0
     Y_pose = LaunchConfiguration('Y_pose', default='1.5707')
     
     robot_desc = Command(['xacro ', urdf_path])
@@ -28,16 +28,6 @@ def generate_launch_description():
     remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
 
 
-    robot_state_publisher_cmd = Node(
-            package='robot_state_publisher',
-            executable='robot_state_publisher',
-            name='robot_state_publisher',
-            namespace='',
-            output='screen',
-            parameters=[{'use_sim_time': use_sim_time, 'robot_description': robot_desc}],
-            remappings=remappings,
-            arguments=[robot_desc]
-            )
 
     gzserver_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -68,17 +58,28 @@ def generate_launch_description():
         output='screen',
     )
 
+    robot_state_publisher_cmd = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        namespace='',
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time, 'robot_description': robot_desc}],
+        remappings=remappings,
+        arguments=[robot_desc]
+    )
+    
     robot_localization_node = Node(
-         package='robot_localization',
-         executable='ekf_node',
-         name='ekf_filter_node',
-         output='screen',
-         parameters=[ekf_config_path, {'use_sim_time': use_sim_time}],
-         remappings=[('/set_pose', '/initialpose')],
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[ekf_config_path, {'use_sim_time': use_sim_time}],
+        remappings=[('/set_pose', '/initialpose')],
     )
 
     ld = LaunchDescription()
-
+    
     # Add the commands to the launch description
     ld.add_action(robot_state_publisher_cmd)
     ld.add_action(gzserver_cmd)

@@ -37,7 +37,6 @@ ekf_filter_node_odom:
     use_control: false
 
     # process_noise_covariance: [1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3]
-
     # initial_estimate_covariance: [1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9]
 
 ekf_filter_node_map:
@@ -108,5 +107,5 @@ navsat_transform:
 
     publish_filtered_gps: true
     use_odometry_yaw: false
-    wait_for_datum: false
+    wait_for_datum: true
     # datum: [55.944904, -3.186693, 0.0]  

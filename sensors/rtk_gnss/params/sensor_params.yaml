@@ -1,4 +1,4 @@
 gps_subpub:
   ros__parameters:
-    serial_port: "/dev/ttyACM0"
+    serial_port: "/dev/reachRS2"
     baudrate: 115200

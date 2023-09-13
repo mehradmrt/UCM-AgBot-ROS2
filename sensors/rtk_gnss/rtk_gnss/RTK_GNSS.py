@@ -8,9 +8,9 @@ from sensor_msgs.msg import NavSatFix
 class GPSPublisher_ser(Node):
     def __init__(self):
         super().__init__('gps_subpub')
-        self.publisher_ = self.create_publisher(NavSatFix, 'gps/data', 10)
+        self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
 
-        self.declare_parameter("serial_port", "/dev/ttyACM0")  # Default value
+        self.declare_parameter("serial_port", "/dev/reachRS2")  # Default value
         self.declare_parameter("baudrate", 115200)  # Default value
 
         self.serial_port = self.get_parameter("serial_port").get_parameter_value().string_value
@@ -52,7 +52,7 @@ class GPSPublisher_ser(Node):
 class GPSPublisher_TCP(Node):
     def __init__(self):
         super().__init__('gps_subpub')
-        self.publisher_ = self.create_publisher(NavSatFix, 'gps/data', 10)
+        self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
         self.ip_address = "192.168.0.213"  # RS IP:192.168.0.222(RS+) and [.223(RS2) for robot_AP] and [.213 for ehsani_lab] 
         self.port = 9001
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

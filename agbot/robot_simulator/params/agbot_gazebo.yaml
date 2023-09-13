@@ -41,12 +41,8 @@ amcl:
     map_topic: map
     set_initial_pose: false
     always_reset_initial_pose: false
-    first_map_only: false
-    # initial_pose:
-    #   x: 0.0
-    #   y: 0.0
-    #   z: 0.0
-    #   yaw: 0.0
+    first_map_only_: false
+    initial_pose: {x: 0.0, y: 0.0, z: 0.0, yaw: 1.5707}
 
 amcl_map_client:
   ros__parameters:
@@ -61,7 +57,7 @@ bt_navigator:
     use_sim_time: True
     global_frame: map
     robot_base_frame: base_link
-    odom_topic: /odom
+    odom_topic: odom
     enable_groot_monitoring: True
     groot_zmq_publisher_port: 1666
     groot_zmq_server_port: 1667
@@ -104,6 +100,7 @@ controller_server:
     progress_checker_plugin: "progress_checker"
     goal_checker_plugin: "goal_checker"
     controller_plugins: ["FollowPath"]
+    odom_topic: "odom"
 
     # Progress checker parameters
     progress_checker:
@@ -192,7 +189,7 @@ local_costmap:
         mark_threshold: 0
         observation_sources: scan
         scan:
-          topic: /scan
+          topic: scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -224,7 +221,7 @@ global_costmap:
         enabled: True
         observation_sources: scan
         scan:
-          topic: /scan
+          topic: scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True

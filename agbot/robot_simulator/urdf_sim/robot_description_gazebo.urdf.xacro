@@ -376,7 +376,7 @@
       <command_topic>cmd_vel</command_topic>
       <publish_odom>true</publish_odom>
       <publish_odom_tf>false</publish_odom_tf>
-      <publish_wheel_tf>false</publish_wheel_tf>
+      <publish_wheel_tf>true</publish_wheel_tf>
       <odometry_topic>wheel/odometry</odometry_topic>
       <odometry_frame>odom</odometry_frame>
       <odometry_source>0</odometry_source>
@@ -412,7 +412,7 @@
           <vertical>
             <noise type="gaussian">
               <mean>0.0</mean>
-              <stddev>1</stddev>
+              <stddev>1e-1</stddev>
             </noise>
           </vertical>
         </position_sensing>

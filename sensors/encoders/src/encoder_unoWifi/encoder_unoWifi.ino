@@ -20,7 +20,7 @@ void loop() {
   // Serial.println(millis());
   if(millis() - lastTime >= sampleInterval) {
     float radPerSecond = (float)(count - lastCount)*(2*PI) / (4*(millis()-lastTime)*0.001*CPR);
-    Serial.print("rad/s: ");
+    // Serial.print("rad/s: ");
     Serial.println(radPerSecond, 4); // 4 decimal places
     // Serial.println((float)(count - lastCount)/4);
     // Serial.println((millis()-lastTime)*0.001); // 4 decimal places

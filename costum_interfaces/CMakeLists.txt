@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(interfaces)
+project(costum_interfaces)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -18,7 +18,11 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+
+# interface generator
+rosidl_generate_interfaces(${PROJECT_NAME} "msg/WheelEncoders.msg" DEPENDENCIES std_msgs)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

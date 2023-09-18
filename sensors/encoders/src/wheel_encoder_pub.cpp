@@ -1,5 +1,5 @@
 #include "rclcpp/rclcpp.hpp"
-#include "costum_interfaces/msg/wheel_encoders.hpp"
+#include "custom_interfaces/msg/wheel_encoders.hpp"
 #include <boost/asio.hpp>
 #include <string>
 #include <chrono>
@@ -10,7 +10,7 @@ public:
     EncoderNode()
         : Node("encoder_node"), port_LW_(io_service_, "/dev/mc_LW"), port_RW_(io_service_, "/dev/mc_RW")
     {
-        publisher_ = this->create_publisher<costum_interfaces::msg::WheelEncoders>("wheel_encoders", 10);
+        publisher_ = this->create_publisher<custom_interfaces::msg::WheelEncoders>("wheel/encoders", 10);
         initialize_port(port_LW_);
         initialize_port(port_RW_);
 
@@ -34,7 +34,7 @@ private:
     };
 
     // Member variables
-    rclcpp::Publisher<costum_interfaces::msg::WheelEncoders>::SharedPtr publisher_;
+    rclcpp::Publisher<custom_interfaces::msg::WheelEncoders>::SharedPtr publisher_;
     boost::asio::io_service io_service_;
     EncoderPort port_LW_, port_RW_;
     const std::chrono::seconds timeout_duration_ = std::chrono::seconds(1);
@@ -136,7 +136,7 @@ private:
             right_value = std::stod(line);
         }
 
-        costum_interfaces::msg::WheelEncoders msg;
+        custom_interfaces::msg::WheelEncoders msg;
         msg.header.stamp = this->now();
         msg.left_encoder = left_value;
         msg.right_encoder = right_value;

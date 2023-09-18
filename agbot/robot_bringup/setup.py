@@ -30,8 +30,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'robot_state_publisher_costum = robot_bringup.joint_state_pub:main',
-            'wheel_odometry_pub = robot_bringup.wheel_odometry:main'
+            'joint_state_pub = robot_bringup.joint_state_pub:main',
+            'robot_velocity_pub = robot_bringup.robot_velocity_pub:main'
         ],
     },
 )

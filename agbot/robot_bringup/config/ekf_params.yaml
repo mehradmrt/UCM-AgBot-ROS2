@@ -152,7 +152,7 @@
 
 ekf_filter_node_odom:
   ros__parameters:
-    frequency: 5.0
+    frequency: 20.0
     sensor_timeout: 0.5
     two_d_mode: true
     transform_time_offset: 0.0
@@ -189,7 +189,6 @@ ekf_filter_node_odom:
     use_control: false
 
     process_noise_covariance: [1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3]
-
     initial_estimate_covariance: [1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9]
 
 ekf_filter_node_map:
@@ -217,7 +216,7 @@ ekf_filter_node_map:
     odom0_differential: false
     odom0_relative: false
     
-    odom1: gps/data
+    odom1: gps/fix
     odom1_config: [true,  true,  false,
                   false, false, false,
                   false, false, false,
@@ -229,7 +228,7 @@ ekf_filter_node_map:
 
     imu0: vectornav/imu_uncompensated
     imu0_config: [false, false, false,
-                  true,  true,  false,
+                  true,  true,  true,
                   false, false, false,
                   true,  true,  true,
                   true,  true,  true]

@@ -19,11 +19,11 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(costum_interfaces REQUIRED)
+find_package(custom_interfaces REQUIRED)
 
 add_executable(wheel_encoder_pub src/wheel_encoder_pub.cpp)
 
-ament_target_dependencies(wheel_encoder_pub rclcpp std_msgs costum_interfaces)
+ament_target_dependencies(wheel_encoder_pub rclcpp std_msgs custom_interfaces)
 
 install(TARGETS wheel_encoder_pub DESTINATION lib/${PROJECT_NAME})
 

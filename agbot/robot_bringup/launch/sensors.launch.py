@@ -18,12 +18,15 @@ def generate_launch_description():
     gnss = DeclareLaunchArgument('gnss', default_value='true', description='RTK/GNSS sensor node')
     lidar2d = DeclareLaunchArgument('lidar2d', default_value='true', description='Lidar2D sensor node')
     realsense = DeclareLaunchArgument('realsense', default_value='false', description='Realsense d435i sensor node')
+    encoders = DeclareLaunchArgument('encoders', default_value='true', description='left and right encoders')
 
     launch_actions = [
         imu,
         gnss,
         lidar2d,
         realsense,
+        encoders,
+        
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(imu_launch_dir),
             condition=IfCondition(LaunchConfiguration('imu'))
@@ -42,6 +45,12 @@ def generate_launch_description():
             condition=IfCondition(LaunchConfiguration('gnss')),
             parameters=[{'use_sim_time': use_sim_time}],
         ),
+        Node(
+            package='encoders',
+            executable='wheel_encoder_pub',
+            condition=IfCondition(LaunchConfiguration('encoders')),
+            parameters=[{'use_sim_time': use_sim_time}],
+        )
     ]
 
     return LaunchDescription(launch_actions)

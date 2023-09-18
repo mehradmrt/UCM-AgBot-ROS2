@@ -23,8 +23,12 @@ class GPSPublisher_ser(Node):
             self.get_logger().error('Failed to connect to {}. Error: {}'.format(self.serial_port, str(err)))
             return
 
+        self.covariance = [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
+        
         time_period = 0.2
         self.timer = self.create_timer(time_period, self.read_and_publish_gps_info)
+
+
 
     def read_and_publish_gps_info(self):
         # self.get_logger().info('In read_and_publish_gps_info...')
@@ -43,6 +47,8 @@ class GPSPublisher_ser(Node):
                     gps_msg.latitude = msg.latitude
                     gps_msg.longitude = msg.longitude
                     gps_msg.altitude = float(msg.altitude) if hasattr(msg, 'altitude') and msg.altitude else 0.0
+                    gps_msg.position_covariance = self.covariance
+                    gps_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_DIAGONAL_KNOWN
                     self.publisher_.publish(gps_msg)
                     self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
         except pynmea2.ParseError as e:
@@ -58,6 +64,7 @@ class GPSPublisher_TCP(Node):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sensor_timeout = 2  # seconds
         self.last_received_time = None
+        self.covariance = [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
 
         self.establish_connection()
 
@@ -108,6 +115,8 @@ class GPSPublisher_TCP(Node):
                             gps_msg.latitude = msg.latitude 
                             gps_msg.longitude = msg.longitude
                             gps_msg.altitude = float(msg.altitude) if hasattr(msg, 'altitude') and msg.altitude else 0.0
+                            gps_msg.position_covariance = self.covariance
+                            gps_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_DIAGONAL_KNOWN
                             self.publisher_.publish(gps_msg)
                             # self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
                         except pynmea2.ChecksumError:

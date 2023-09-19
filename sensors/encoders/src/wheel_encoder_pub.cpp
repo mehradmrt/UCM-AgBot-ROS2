@@ -54,7 +54,7 @@ private:
         );
     }
 
-    // Method to check for port timeout and attempt reconnection
+
     void check_timeout_and_reconnect(EncoderPort& encoder_port)
     {
         auto now = std::chrono::steady_clock::now();
@@ -96,7 +96,6 @@ private:
         }
     }
 
-    // Set up asynchronous reading from the port
     void setup_async_read(EncoderPort& encoder_port)
     {
         boost::asio::async_read_until(encoder_port.port, encoder_port.buffer, "\n",
@@ -124,7 +123,6 @@ private:
             });
     }
 
-    // Process and publish the data received from the port
     void process_received_data(EncoderPort& encoder_port, const std::string& line)
     {
         if(encoder_port.port_name == "/dev/mc_LW")

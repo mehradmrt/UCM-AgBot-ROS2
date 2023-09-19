@@ -1,10 +1,10 @@
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_path
-from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
     desc_pkg = get_package_share_path('robot_description')
@@ -14,29 +14,32 @@ def generate_launch_description():
     default_ekf_path = os.path.join(my_pkg_path, 'config', 'ekf_params.yaml')
     default_rviz_config_path = os.path.join(my_pkg_path, 'rviz', 'localization.rviz')
 
+    map_launch_path = os.path.join(my_pkg_path, 'launch', 'map_publisher.launch.py')
+    nav_bringup_dir = get_package_share_path('nav2_bringup')
+    nav_launch_dir = os.path.join(nav_bringup_dir, 'launch')
+
     use_sim_time = LaunchConfiguration('use_sim_time')
     robot_description = Command(['xacro ', LaunchConfiguration('model')])
 
-    return LaunchDescription([
-        DeclareLaunchArgument(
+    model_arg = DeclareLaunchArgument(
             'model',
             default_value=default_model_path,
             description='Path to the URDF file'
-        ),
+        )
 
-        DeclareLaunchArgument(
+    sim_time_arg = DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',
             description='use simulation time'
-        ),
+        )
 
-        Node(
+    robot_velocity_pub_node = Node(
             package='robot_bringup',
             executable='robot_velocity_pub',
             name='robot_velocity_publisher',
-        ),
+        )
 
-        Node(
+    navsat_transform_node = Node(
             package='robot_localization',
             executable='navsat_transform_node',
             name='navsat_transform',
@@ -44,12 +47,12 @@ def generate_launch_description():
             parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
             remappings=[('imu/data', 'vectornav/imu_uncompensated'),
                         ('gps/fix', 'gps/fix'), 
+                        ('odometry/filtered', 'odometry/global'),
                         ('gps/filtered', 'gps/filtered'),
-                        ('odometry/gps', 'odometry/gps'),
-                        ('odometry/filtered', 'odometry/global')] 
-        ),
+                        ('odometry/gps', 'odometry/gps'),] 
+        )
 
-        Node(
+    ekf_filter_node_odom = Node(
             package='robot_localization', 
             executable='ekf_node', 
             name='ekf_filter_node_odom',
@@ -57,9 +60,9 @@ def generate_launch_description():
             parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
             remappings=[('odometry/filtered', 'odometry/local'),
                         ('/set_pose', '/initialpose')]         
-        ),
+        )
 
-        Node(
+    ekf_filter_node_map = Node(
             package='robot_localization', 
             executable='ekf_node', 
             name='ekf_filter_node_map',
@@ -67,31 +70,56 @@ def generate_launch_description():
             parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
             remappings=[('odometry/filtered', 'odometry/global'),
                         ('/set_pose', '/initialpose')]    
-           ),     
+           )  
 
-        Node(
+    robot_state_publisher = Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             output= 'screen',
             parameters=[{'robot_description': robot_description ,
                         'use_sim_time' : use_sim_time}]
-        ),
+        )
 
-        Node(
-            package='robot_bringup',
-            executable='joint_state_pub',
-            name='joint_state_publisher_custom',
-        ),
-        
-        # Node(
-        #     package='joint_state_publisher',
-        #     executable='joint_state_publisher',
-        #     name='joint_state_publisher'
-        # ),
+    # joint_state_pub = Node(
+    #         package='robot_bringup',
+    #         executable='joint_state_pub',
+    #         name='joint_state_publisher_custom',
+    #     )
+    
+    joint_state_pub = Node(
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            name='joint_state_publisher',
+        )
 
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            arguments=['-d', default_rviz_config_path],
-        ),
+    map_server = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(map_launch_path),
+            launch_arguments={'use_sim_time': use_sim_time}.items())
+
+    # rviz =  Node(
+    #         package='rviz2',
+    #         executable='rviz2',
+    #         arguments=['-d', default_rviz_config_path],
+    #     )
+    
+    rviz = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(nav_launch_dir, 'rviz_launch.py')),
+        launch_arguments={'namespace': '',
+                          'use_namespace': 'False',
+                          'rviz_config': os.path.join(nav_bringup_dir, 'rviz', 'nav2_default_view.rviz'),}.items())
+
+
+    
+    return LaunchDescription([
+        sim_time_arg,
+        model_arg,
+        robot_velocity_pub_node,
+        robot_state_publisher,
+        joint_state_pub,
+        navsat_transform_node,
+        ekf_filter_node_odom,
+        ekf_filter_node_map,
+        map_server,
+        rviz
+
     ])

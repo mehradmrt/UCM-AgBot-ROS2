@@ -1,155 +1,3 @@
-# ## ekf config file ###
-# ekf_filter_node_odom:
-#   ros__parameters:
-#     use_sim_time: true
-#     frequency: 10.0
-#     sensor_timeout: 0.2
-#     two_d_mode: true
-#     transform_time_offset: 0.0
-#     transform_timeout: 0.0
-#     print_diagnostics: true
-#     debug: false
-
-#     debug_out_file: debug.txt
-
-#     publish_tf: true
-
-#     publish_acceleration: false
-
-#     reset_on_time_jump: true
-
-#     map_frame: map                    # Defaults to "map" if unspecified
-#     odom_frame: odom                  # Defaults to "odom" if unspecified
-#     base_link_frame: base_link        # Defaults to "base_link" if unspecified
-#     world_frame: odom                 # Defaults to the value of odom_frame if unspecified
-
-#     odom0: gps/fix
-#     odom0_config: [true,  true,  false,
-#                   false, false, false,
-#                   false, false, false,
-#                   false, false, false,
-#                   false, false, false]
-#     odom0_queue_size: 10
-#     odom0_nodelay: false
-#     odom0_differential: false
-#     odom0_relative: false
-
-#     imu0: imu/data
-#     imu0_config: [false, false, false,
-#                   true,  true,  true,
-#                   false, false, false,
-#                   true,  true,  true,
-#                   true,  true,  true]
-#     imu0_nodelay: false
-#     imu0_differential: false
-#     imu0_relative: false
-#     imu0_queue_size: 7
-#     imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
-#     imu0_twist_rejection_threshold: 0.8                #
-#     imu0_linear_acceleration_rejection_threshold: 0.8  #
-#     imu0_remove_gravitational_acceleration: true
-
-#     use_control: false
-
-#     stamped_control: false
-#     control_timeout: 0.2
-
-#     control_config: [true, false, false, false, false, true]
-
-#     acceleration_limits: [1.3, 0.0, 0.0, 0.0, 0.0, 3.4]
-
-#     deceleration_limits: [1.3, 0.0, 0.0, 0.0, 0.0, 4.5]
-
-#     acceleration_gains: [0.8, 0.0, 0.0, 0.0, 0.0, 0.9]
-
-#     deceleration_gains: [1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-
-#     process_noise_covariance: [0.05,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.05,   0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.06,   0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.03,   0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.03,   0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.06,   0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.025,   0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.025,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.04,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.01,   0.0,    0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.01,   0.0,    0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.02,   0.0,    0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.01,   0.0,    0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.01,   0.0,
-#                                 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.015]
-
-#     initial_estimate_covariance: [1e-9,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    1e-9,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    1e-9,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    1e-9,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    1e-9,   0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    0.0,    1e-9,   0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    1e-9,   0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    1e-9,   0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    1e-9,   0.0,     0.0,     0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    1e-9,    0.0,     0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     1e-9,    0.0,     0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     1e-9,    0.0,    0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     1e-9,   0.0,    0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    1e-9,   0.0,
-#                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    1e-9]
-
-
-# ekf_filter_node_map:
-#   ros__parameters:
-#     frequency: 5.0
-#     sensor_timeout: 0.5
-#     two_d_mode: true          
-#     transform_time_offset: 0.0
-#     transform_timeout: 0.0
-#     print_diagnostics: true
-
-#     debug: false
-#     debug_out_file: debug.txt
-
-#     permit_corrected_publication: false
-#     publish_acceleration: false
-#     publish_tf: true
-#     reset_on_time_jump: true
-    
-#     map_frame: map              # Defaults to "map" if unspecified
-#     odom_frame: odom            # Defaults to "odom" if unspecified
-#     base_link_frame: base_link  # Defaults to "base_link" if unspecified
-#     world_frame: map           # Defaults to the value of odom_frame if unspecified
-
-
-#     odom0: /gps/fix
-#     odom0_config: [true, true, false,
-#                   false, false, false,
-#                   false, false, false,
-#                   false, false, false,
-#                   false, false, false]
-#     odom0_differential: false
-
-#     imu0: /vectornav/imu
-#     imu0_config: [false, false, false,
-#                   true,  true,  true,
-#                   false, false, false,
-#                   true,  true,  true,
-#                   true,  true,  true]
-#     imu0_differential: false
-#     imu0_relative: false
-#     imu0_remove_gravitational_acceleration: true
-
-#     imu0_queue_size: 10
-#     imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
-#     imu0_twist_rejection_threshold: 0.8                #
-#     imu0_linear_acceleration_rejection_threshold: 0.8  #
-
-#     use_control: false
-
-#     dynamic_process_noise_covariance: true
-#     process_noise_covariance: [1.0, 1.0, 1e-3, 0.3, 0.3, 0.01, 0.5, 0.5, 0.1, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
-
-#     initial_estimate_covariance: [1.0, 1.0, 1e-9, 1.0, 1.0, 1e-9, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-
 ekf_filter_node_odom:
   ros__parameters:
     frequency: 20.0
@@ -187,9 +35,45 @@ ekf_filter_node_odom:
     imu0_remove_gravitational_acceleration: true
 
     use_control: false
+    dynamic_process_noise_covariance: true
 
-    process_noise_covariance: [1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3]
-    initial_estimate_covariance: [1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9]
+    process_noise_covariance: [
+      1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # x
+      0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # y
+      0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # z
+      0.0, 0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # roll
+      0.0, 0.0, 0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # pitch
+      0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # yaw
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # x_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # y_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # z_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0, 0.0, 0.0, 0.0, 0.0,  # roll_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0, 0.0, 0.0, 0.0,  # pitch_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0, 0.0, 0.0,  # yaw_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0, 0.0,  # x_acc
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0,  # y_acc
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6   # z_acc
+    ]
+
+
+    initial_estimate_covariance: [
+      1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # x
+      0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # y
+      0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # z
+      0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # roll
+      0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # pitch
+      0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # yaw
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # x_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # y_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # z_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0,  # roll_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0,  # pitch_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0,  # yaw_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0,  # x_acc
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0,  # y_acc
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12   # z_acc
+    ]
+
 
 ekf_filter_node_map:
   ros__parameters:
@@ -207,11 +91,11 @@ ekf_filter_node_map:
     world_frame: map
 
     odom0: wheel/odometry
-    odom0_config: [false, false, false,
-                  false, false, false,
-                  true,  true,  false,
-                  false, false, true,
-                  false, false, false]
+    odom0_config: [ false, false, false,
+                    false, false, false,
+                    true,  true,  false,
+                    false, false, true,
+                    false, false, false]
     odom0_queue_size: 10
     odom0_differential: false
     odom0_relative: false
@@ -238,10 +122,45 @@ ekf_filter_node_map:
     imu0_remove_gravitational_acceleration: true
 
     use_control: false
+    dynamic_process_noise_covariance: true
 
-    process_noise_covariance: [1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3]
+    process_noise_covariance: [
+      1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # x
+      0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # y
+      0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # z
+      0.0, 0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # roll
+      0.0, 0.0, 0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # pitch
+      0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # yaw
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # x_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # y_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # z_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0, 0.0, 0.0, 0.0, 0.0,  # roll_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0, 0.0, 0.0, 0.0,  # pitch_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0, 0.0, 0.0,  # yaw_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0, 0.0,  # x_acc
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6, 0.0,  # y_acc
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-6   # z_acc
+    ]
 
-    initial_estimate_covariance: [1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9]
+
+
+    initial_estimate_covariance: [
+      1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # x
+      0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # y
+      0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # z
+      0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # roll
+      0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # pitch
+      0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # yaw
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # x_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # y_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # z_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0, 0.0,  # roll_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0, 0.0,  # pitch_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0, 0.0,  # yaw_vel
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0, 0.0,  # x_acc
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12, 0.0,  # y_acc
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0e-12   # z_acc
+    ]
 
 navsat_transform:
   ros__parameters:
@@ -260,4 +179,4 @@ navsat_transform:
     publish_filtered_gps: true
     use_odometry_yaw: false
     wait_for_datum: false
-    # datum: [55.944904, -3.186693, 0.0]  
+    # datum: [37.37, -120.58, 0.00]  

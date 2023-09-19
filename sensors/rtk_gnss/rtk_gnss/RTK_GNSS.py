@@ -10,8 +10,8 @@ class GPSPublisher_ser(Node):
         super().__init__('gps_subpub')
         self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
 
-        self.declare_parameter("serial_port", "/dev/reachRS2")  # Default value
-        self.declare_parameter("baudrate", 115200)  # Default value
+        self.declare_parameter("serial_port", "/dev/reachRS2") 
+        self.declare_parameter("baudrate", 115200)  
 
         self.serial_port = self.get_parameter("serial_port").get_parameter_value().string_value
         self.baudrate = self.get_parameter("baudrate").get_parameter_value().integer_value
@@ -62,7 +62,7 @@ class GPSPublisher_TCP(Node):
         self.ip_address = "192.168.0.213"  # RS IP:192.168.0.222(RS+) and [.223(RS2) for robot_AP] and [.213 for ehsani_lab] 
         self.port = 9001
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sensor_timeout = 2  # seconds
+        self.sensor_timeout = 0.5  
         self.last_received_time = None
         self.covariance = [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
 
@@ -71,8 +71,7 @@ class GPSPublisher_TCP(Node):
         self.data_timer_period = 0.2
         self.data_timer = self.create_timer(self.data_timer_period, self.read_and_publish_gps_info)
 
-        self.reconnect_timer_period = 1  # seconds
-        self.reconnect_timer = self.create_timer(self.reconnect_timer_period, self.check_connection)
+        self.reconnect_timer = self.create_timer(self.sensor_timeout, self.check_connection)
 
     def establish_connection(self):
         try:

@@ -1,4 +1,4 @@
-#define CPR 600 // Counts Per Revolution (assumed value, you'll need to adjust for your encoder)
+#define CPR 600 
 
 int pinA = 2;
 int pinB = 3; 
@@ -23,10 +23,10 @@ void loop() {
     // Serial.print("rad/s: ");
     Serial.println(radPerSecond, 4); // 4 decimal places
     // Serial.println((float)(count - lastCount)/4);
-    // Serial.println((millis()-lastTime)*0.001); // 4 decimal places
+    // Serial.println((millis()-lastTime)*0.001);
 
-    lastCount = count; // Update the count for next interval
-    lastTime += sampleInterval; // Shift sampling window
+    lastCount = count;
+    lastTime += sampleInterval; 
   }
 }
 

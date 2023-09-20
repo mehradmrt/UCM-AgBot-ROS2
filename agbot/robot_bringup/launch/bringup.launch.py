@@ -80,17 +80,17 @@ def generate_launch_description():
                         'use_sim_time' : use_sim_time}]
         )
 
-    # joint_state_pub = Node(
-    #         package='robot_bringup',
-    #         executable='joint_state_pub',
-    #         name='joint_state_publisher_custom',
-    #     )
-    
     joint_state_pub = Node(
-            package='joint_state_publisher',
-            executable='joint_state_publisher',
-            name='joint_state_publisher',
+            package='robot_bringup',
+            executable='joint_state_pub',
+            name='joint_state_publisher_custom',
         )
+
+    # joint_state_pub = Node(
+    #         package='joint_state_publisher',
+    #         executable='joint_state_publisher',
+    #         name='joint_state_publisher',
+    #     )
 
     map_server = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(map_launch_path),

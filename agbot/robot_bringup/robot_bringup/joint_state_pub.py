@@ -39,7 +39,7 @@ class JointStatePublisher(Node):
         self.joint_pub.publish(joint_state)
         self.prev_time = current_time
 
-        self.broadcast_joint_transforms(current_time)
+        # self.broadcast_joint_transforms(current_time)
 
     def broadcast_joint_transforms(self, current_time):
         t = TransformStamped()

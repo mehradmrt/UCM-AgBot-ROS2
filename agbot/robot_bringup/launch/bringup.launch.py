@@ -18,6 +18,8 @@ def generate_launch_description():
     nav_bringup_dir = get_package_share_path('nav2_bringup')
     nav_launch_dir = os.path.join(nav_bringup_dir, 'launch')
 
+    navigation_launch_path = os.path.join(my_pkg_path, 'launch', 'navigation_launch.launch.py')
+
     use_sim_time = LaunchConfiguration('use_sim_time')
     robot_description = Command(['xacro ', LaunchConfiguration('model')])
 
@@ -86,21 +88,14 @@ def generate_launch_description():
             name='joint_state_publisher_custom',
         )
 
-    # joint_state_pub = Node(
-    #         package='joint_state_publisher',
-    #         executable='joint_state_publisher',
-    #         name='joint_state_publisher',
-    #     )
-
     map_server = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(map_launch_path),
             launch_arguments={'use_sim_time': use_sim_time}.items())
-
-    # rviz =  Node(
-    #         package='rviz2',
-    #         executable='rviz2',
-    #         arguments=['-d', default_rviz_config_path],
-    #     )
+    
+    navigation_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(map_launch_path),
+        launch_arguments={'use_sim_time': use_sim_time}.items())
+    
     
     rviz = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(nav_launch_dir, 'rviz_launch.py')),

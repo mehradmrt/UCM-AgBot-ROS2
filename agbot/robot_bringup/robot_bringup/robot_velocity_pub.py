@@ -41,6 +41,8 @@ class VelocityCalculator(Node):
 
         self.twist_pub.publish(twist_stamped)
 
+
+
 def main(args=None):
     rclpy.init(args=args)
     velocity_calculator = VelocityCalculator()

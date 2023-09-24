@@ -6,8 +6,6 @@ from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.actions import Node
 
-
-
 def generate_launch_description():
     urdf_tutorial_path = get_package_share_path('robot_description')
     default_model_path =  os.path.join(urdf_tutorial_path,'urdf','robot_description.urdf.xacro')

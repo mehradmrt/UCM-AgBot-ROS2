@@ -1,120 +1,129 @@
 import os
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import (DeclareLaunchArgument, GroupAction, 
+                            IncludeLaunchDescription, SetEnvironmentVariable)
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, LaunchConfiguration
-from launch_ros.actions import Node
-from ament_index_python.packages import get_package_share_path
+from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch_ros.actions import PushRosNamespace
+
 
 def generate_launch_description():
-    desc_pkg = get_package_share_path('robot_description')
-    default_model_path = os.path.join(desc_pkg, 'urdf', 'robot_description.urdf.xacro')
+    # Get the launch directory
+    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
+    launch_dir = os.path.join(nav2_bringup_dir, 'launch')
 
-    my_pkg_path = get_package_share_path('robot_bringup')
-    default_ekf_path = os.path.join(my_pkg_path, 'config', 'ekf_params.yaml')
-    default_rviz_config_path = os.path.join(my_pkg_path, 'rviz', 'localization.rviz')
+    robot_bringup_dir = get_package_share_directory('robot_bringup')
 
-    map_launch_path = os.path.join(my_pkg_path, 'launch', 'map_publisher.launch.py')
-    nav_bringup_dir = get_package_share_path('nav2_bringup')
-    nav_launch_dir = os.path.join(nav_bringup_dir, 'launch')
 
-    navigation_launch_path = os.path.join(my_pkg_path, 'launch', 'navigation_launch.launch.py')
 
+    # Create the launch configuration variables
+    namespace = LaunchConfiguration('namespace')
+    use_namespace = LaunchConfiguration('use_namespace')
+    slam = LaunchConfiguration('slam')
+    map_yaml_file = LaunchConfiguration('map')
     use_sim_time = LaunchConfiguration('use_sim_time')
-    robot_description = Command(['xacro ', LaunchConfiguration('model')])
+    params_file = LaunchConfiguration('params_file')
+    default_bt_xml_filename = LaunchConfiguration('default_bt_xml_filename')
+    autostart = LaunchConfiguration('autostart')
 
-    model_arg = DeclareLaunchArgument(
-            'model',
-            default_value=default_model_path,
-            description='Path to the URDF file'
-        )
+    stdout_linebuf_envvar = SetEnvironmentVariable(
+        'RCUTILS_LOGGING_BUFFERED_STREAM', '1')
 
-    sim_time_arg = DeclareLaunchArgument(
-            'use_sim_time',
-            default_value='false',
-            description='use simulation time'
-        )
+    declare_namespace_cmd = DeclareLaunchArgument(
+        'namespace',
+        default_value='',
+        description='Top-level namespace')
 
-    robot_velocity_pub_node = Node(
-            package='robot_bringup',
-            executable='robot_velocity_pub',
-            name='robot_velocity_publisher',
-        )
+    declare_use_namespace_cmd = DeclareLaunchArgument(
+        'use_namespace',
+        default_value='false',
+        description='Whether to apply a namespace to the navigation stack')
 
-    navsat_transform_node = Node(
-            package='robot_localization',
-            executable='navsat_transform_node',
-            name='navsat_transform',
-            output='screen',
-            parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
-            remappings=[('imu/data', 'vectornav/imu_uncompensated'),
-                        ('gps/fix', 'gps/fix'), 
-                        ('odometry/filtered', 'odometry/global'),
-                        ('gps/filtered', 'gps/filtered'),
-                        ('odometry/gps', 'odometry/gps'),] 
-        )
+    declare_slam_cmd = DeclareLaunchArgument(
+        'slam',
+        default_value='False',
+        description='Whether run a SLAM')
 
-    ekf_filter_node_odom = Node(
-            package='robot_localization', 
-            executable='ekf_node', 
-            name='ekf_filter_node_odom',
-	        output='screen',
-            parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
-            remappings=[('odometry/filtered', 'odometry/local'),
-                        ('/set_pose', '/initialpose')]         
-        )
+    declare_map_yaml_cmd = DeclareLaunchArgument(
+        'map',default_value=os.path.join(robot_bringup_dir, 'maps', 'orchard_irr.yaml'),
+        description='Full path to map yaml file to load')
 
-    ekf_filter_node_map = Node(
-            package='robot_localization', 
-            executable='ekf_node', 
-            name='ekf_filter_node_map',
-	        output='screen',
-            parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
-            remappings=[('odometry/filtered', 'odometry/global'),
-                        ('/set_pose', '/initialpose')]    
-           )  
+    declare_use_sim_time_cmd = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulation (Gazebo) clock if true')
 
-    robot_state_publisher = Node(
-            package='robot_state_publisher',
-            executable='robot_state_publisher',
-            output= 'screen',
-            parameters=[{'robot_description': robot_description ,
-                        'use_sim_time' : use_sim_time}]
-        )
+    declare_params_file_cmd = DeclareLaunchArgument(
+        'params_file',
+        default_value=os.path.join(robot_bringup_dir, 'params', 'agbot.yaml'),
+        description='Full path to the ROS2 parameters file to use for all launched nodes')
 
-    joint_state_pub = Node(
-            package='robot_bringup',
-            executable='joint_state_pub',
-            name='joint_state_publisher_custom',
-        )
+    declare_bt_xml_cmd = DeclareLaunchArgument(
+        'default_bt_xml_filename',
+        default_value=os.path.join(
+            get_package_share_directory('nav2_bt_navigator'),
+            'behavior_trees', 'navigate_w_replanning_and_recovery.xml'),
+        description='Full path to the behavior tree xml file to use')
 
-    map_server = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(map_launch_path),
-            launch_arguments={'use_sim_time': use_sim_time}.items())
-    
-    navigation_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(map_launch_path),
-        launch_arguments={'use_sim_time': use_sim_time}.items())
-    
-    
-    rviz = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(nav_launch_dir, 'rviz_launch.py')),
-        launch_arguments={'namespace': '',
-                          'use_namespace': 'False',
-                          'rviz_config': os.path.join(nav_bringup_dir, 'rviz', 'nav2_default_view.rviz'),}.items())
+    declare_autostart_cmd = DeclareLaunchArgument(
+        'autostart', default_value='true',
+        description='Automatically startup the nav2 stack')
 
 
-    
-    return LaunchDescription([
-        sim_time_arg,
-        model_arg,
-        robot_velocity_pub_node,
-        robot_state_publisher,
-        joint_state_pub,
-        navsat_transform_node,
-        ekf_filter_node_odom,
-        ekf_filter_node_map,
-        map_server,
-        rviz
+    # Specify the actions
+    bringup_cmd_group = GroupAction([
+        PushRosNamespace(
+            condition=IfCondition(use_namespace),
+            namespace=namespace),
 
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(launch_dir, 'slam_launch.py')),
+            condition=IfCondition(slam),
+            launch_arguments={'namespace': namespace,
+                              'use_sim_time': use_sim_time,
+                              'autostart': autostart,
+                              'params_file': params_file}.items()),
+
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(robot_bringup_dir,'launch','localization.launch.py')),
+            condition=IfCondition(PythonExpression(['not ', slam])),
+            launch_arguments={'namespace': namespace,
+                              'map': map_yaml_file,
+                              'use_sim_time': use_sim_time,
+                              'autostart': autostart,
+                              'params_file': params_file,
+                              'use_lifecycle_mgr': 'false'}.items()),
+
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(robot_bringup_dir,'launch', 'navigation.launch.py')),
+            launch_arguments={'namespace': namespace,
+                              'use_sim_time': use_sim_time,
+                              'autostart': autostart,
+                              'params_file': params_file,
+                              'default_bt_xml_filename': default_bt_xml_filename,
+                              'use_lifecycle_mgr': 'false',
+                              'map_subscribe_transient_local': 'true'}.items()),
     ])
+
+    # Create the launch description and populate
+    ld = LaunchDescription()
+
+    # Set environment variables
+    ld.add_action(stdout_linebuf_envvar)
+
+    # Declare the launch options
+    ld.add_action(declare_namespace_cmd)
+    ld.add_action(declare_use_namespace_cmd)
+    ld.add_action(declare_slam_cmd)
+    ld.add_action(declare_map_yaml_cmd)
+    ld.add_action(declare_use_sim_time_cmd)
+    ld.add_action(declare_params_file_cmd)
+    ld.add_action(declare_autostart_cmd)
+    ld.add_action(declare_bt_xml_cmd)
+
+    # Add the actions to launch all of the navigation nodes
+    ld.add_action(bringup_cmd_group)
+
+    return ld

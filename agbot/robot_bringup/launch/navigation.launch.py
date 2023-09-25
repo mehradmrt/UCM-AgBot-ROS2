@@ -24,12 +24,6 @@ def generate_launch_description():
                        'bt_navigator',
                        'waypoint_follower']
 
-    # Map fully qualified names to relative ones so the node's namespace can be prepended.
-    # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
-    # https://github.com/ros/geometry2/issues/32
-    # https://github.com/ros/robot_state_publisher/pull/30
-    # TODO(orduno) Substitute with `PushNodeRemapping`
-    #              https://github.com/ros2/launch_ros/issues/56
     remappings = [('/tf', 'tf'),
                   ('/tf_static', 'tf_static')]
 
@@ -55,7 +49,7 @@ def generate_launch_description():
             description='Top-level namespace'),
 
         DeclareLaunchArgument(
-            'use_sim_time', default_value='true',
+            'use_sim_time', default_value='false',
             description='Use simulation (Gazebo) clock if true'),
 
         DeclareLaunchArgument(
@@ -64,7 +58,7 @@ def generate_launch_description():
 
         DeclareLaunchArgument(
             'params_file',
-            default_value=os.path.join(bringup_local, 'params', 'agbot_gazebo.yaml'),
+            default_value=os.path.join(bringup_local, 'params', 'agbot.yaml'),
             description='Full path to the ROS2 parameters file to use'),
 
         DeclareLaunchArgument(

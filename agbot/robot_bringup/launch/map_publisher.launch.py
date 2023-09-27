@@ -6,6 +6,10 @@ from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import Node
 
 def generate_launch_description():
+
+    remappings = [('/tf', 'tf'),
+                ('/tf_static', 'tf_static')]
+
     use_sim_time = DeclareLaunchArgument(
         'use_sim_time',
         default_value='false',
@@ -18,7 +22,8 @@ def generate_launch_description():
             executable='map_server',
             name= 'map_server', 
             parameters=[{'yaml_filename': map_file_path}],
-            output='screen'
+            output='screen',
+            remappings=remappings,
         )
 
     lifecycle_manager = Node(

@@ -94,7 +94,7 @@ def generate_launch_description():
                               'use_sim_time': use_sim_time,
                               'autostart': autostart,
                               'params_file': params_file,
-                              'use_lifecycle_mgr': 'false'}.items()),
+                              'use_lifecycle_mgr': 'true'}.items()),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(robot_bringup_dir,'launch', 'navigation.launch.py')),
@@ -103,7 +103,7 @@ def generate_launch_description():
                               'autostart': autostart,
                               'params_file': params_file,
                               'default_bt_xml_filename': default_bt_xml_filename,
-                              'use_lifecycle_mgr': 'false',
+                              'use_lifecycle_mgr': 'true',
                               'map_subscribe_transient_local': 'true'}.items()),
     ])
 

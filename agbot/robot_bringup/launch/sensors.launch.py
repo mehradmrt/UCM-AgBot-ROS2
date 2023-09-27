@@ -39,12 +39,12 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(realsense_launch_dir),
             condition=IfCondition(LaunchConfiguration('realsense'))
         ),
-        Node(
-            package='rtk_gnss',
-            executable='RTK_GNSS',
-            condition=IfCondition(LaunchConfiguration('gnss')),
-            parameters=[{'use_sim_time': use_sim_time}],
-        ),
+        # Node(
+        #     package='rtk_gnss',
+        #     executable='RTK_GNSS',
+        #     condition=IfCondition(LaunchConfiguration('gnss')),
+        #     parameters=[{'use_sim_time': use_sim_time}],
+        # ),
         Node(
             package='encoders',
             executable='wheel_encoder_pub',

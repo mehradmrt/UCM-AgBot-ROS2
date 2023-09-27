@@ -24,6 +24,8 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     robot_description = Command(['xacro ', LaunchConfiguration('model')])
 
+    remappings = ('/tf', 'tf'),('/tf_static', 'tf_static')
+
     model_arg = DeclareLaunchArgument(
             'model',
             default_value=default_model_path,
@@ -52,7 +54,7 @@ def generate_launch_description():
                         ('gps/fix', 'gps/fix'), 
                         ('odometry/filtered', 'odometry/global'),
                         ('gps/filtered', 'gps/filtered'),
-                        ('odometry/gps', 'odometry/gps'),] 
+                        ('odometry/gps', 'odometry/gps'),remappings] 
         )
 
     ekf_filter_node_odom = Node(
@@ -62,7 +64,7 @@ def generate_launch_description():
 	        output='screen',
             parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
             remappings=[('odometry/filtered', 'odometry/local'),
-                        ('/set_pose', '/initialpose')]         
+                        ('/set_pose', '/initialpose'),remappings]         
         )
 
     ekf_filter_node_map = Node(
@@ -72,7 +74,7 @@ def generate_launch_description():
 	        output='screen',
             parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
             remappings=[('odometry/filtered', 'odometry/global'),
-                        ('/set_pose', '/initialpose')]    
+                        ('/set_pose', '/initialpose'),remappings]    
            )  
 
     robot_state_publisher = Node(
@@ -80,40 +82,42 @@ def generate_launch_description():
             executable='robot_state_publisher',
             output= 'screen',
             parameters=[{'robot_description': robot_description ,
-                        'use_sim_time' : use_sim_time}]
+                        'use_sim_time' : use_sim_time}],
+            remappings=[remappings]
         )
 
     joint_state_pub = Node(
             package='robot_bringup',
             executable='joint_state_pub',
             name='joint_state_publisher_custom',
+            remappings=[remappings]
         )
 
     map_server = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(map_launch_path),
             launch_arguments={'use_sim_time': use_sim_time}.items())
-    
+
     rviz = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(nav_launch_dir, 'rviz_launch.py')),
         launch_arguments={'namespace': '',
                           'use_namespace': 'False',
-                          'rviz_config': os.path.join(nav_bringup_dir, 'rviz', 'nav2_default_view.rviz'),}.items())
-    
+                          'rviz_config': os.path.join(my_pkg_path, 'rviz', 'navigation.rviz'),}.items())
+                        #   'rviz_config': os.path.join(nav_bringup_dir, 'rviz', 'nav2_default_view.rviz'),}.items())
+
     sensor_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(sensor_launch_path))
-    
+
     robot_control = Node(
             package='robot_control',
             executable='motor_controller',
             name='motor_controller_node',
         )
-    
+
     return LaunchDescription([
         sim_time_arg,
         model_arg,
-
-        robot_control,
-        sensor_launch,
+        # robot_control,
+        # sensor_launch,
         robot_velocity_pub_node,
         robot_state_publisher,
         joint_state_pub,

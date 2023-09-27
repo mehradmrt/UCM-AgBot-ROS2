@@ -6,7 +6,6 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from nav2_common.launch import RewrittenYaml
 
-
 def generate_launch_description():
     # bringup_dir = get_package_share_directory('nav2_bringup')
     bringup_local = get_package_share_directory('robot_bringup')

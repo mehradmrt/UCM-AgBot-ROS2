@@ -116,7 +116,7 @@ def generate_launch_description():
     return LaunchDescription([
         sim_time_arg,
         model_arg,
-        # robot_control,
+        robot_control,
         # sensor_launch,
         robot_velocity_pub_node,
         robot_state_publisher,

@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /TF1/Frames1
         - /TF1/Tree1
+        - /Controller1
       Splitter Ratio: 0.5833333134651184
     Tree Height: 592
   - Class: rviz_common/Selection
@@ -88,6 +89,8 @@ Visualization Manager:
           Value: true
         left_wheel_box_link:
           Value: true
+        left_wheel_link:
+          Value: true
         map:
           Value: true
         odom:
@@ -99,6 +102,8 @@ Visualization Manager:
         right_wheel_additional_r_wheel_link:
           Value: true
         right_wheel_box_link:
+          Value: true
+        right_wheel_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -116,6 +121,8 @@ Visualization Manager:
                   {}
                 left_wheel_additional_r_wheel_link:
                   {}
+              left_wheel_link:
+                {}
               plate_link:
                 base_scan:
                   {}
@@ -128,6 +135,8 @@ Visualization Manager:
                   {}
                 right_wheel_additional_r_wheel_link:
                   {}
+              right_wheel_link:
+                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -145,9 +154,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: -999999
+      Max Intensity: 47
       Min Color: 0; 0; 0
-      Min Intensity: 999999
+      Min Intensity: 47
       Name: LaserScan
       Position Transformer: XYZ
       Selectable: true
@@ -354,6 +363,114 @@ Visualization Manager:
       Name: Global Planner
     - Class: rviz_common/Group
       Displays:
+        - Alpha: 0.699999988079071
+          Class: rviz_default_plugins/Map
+          Color Scheme: costmap
+          Draw Behind: false
+          Enabled: true
+          Name: Local Costmap
+          Topic:
+            Depth: 1
+            Durability Policy: Transient Local
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /local_costmap/costmap
+          Update Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /local_costmap/costmap_updates
+          Use Timestamp: false
+          Value: true
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz_default_plugins/Path
+          Color: 0; 12; 255
+          Enabled: false
+          Head Diameter: 0.30000001192092896
+          Head Length: 0.20000000298023224
+          Length: 0.30000001192092896
+          Line Style: Lines
+          Line Width: 0.029999999329447746
+          Name: Local Plan
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.10000000149011612
+          Shaft Length: 0.10000000149011612
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /local_plan
+          Value: false
+        - Class: rviz_default_plugins/MarkerArray
+          Enabled: false
+          Name: Trajectories
+          Namespaces:
+            {}
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /marker
+          Value: false
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 25; 255; 0
+          Enabled: false
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /local_costmap/published_footprint
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz_default_plugins/PointCloud
+          Color: 255; 255; 255
+          Color Transformer: RGB8
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 4096
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: VoxelGrid
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Flat Squares
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /local_costmap/voxel_marked_cloud
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+      Enabled: true
+      Name: Controller
+    - Class: rviz_common/Group
+      Displays:
         - Class: rviz_default_plugins/Image
           Enabled: true
           Max Value: 1
@@ -449,7 +566,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -1.5700002908706665
+      Angle: -1.6150002479553223
       Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -459,11 +576,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 11.210765838623047
+      Scale: 127.88431549072266
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 3.2878570556640625
-      Y: -14.066736221313477
+      X: -0.044467076659202576
+      Y: -0.38726311922073364
     Saved: ~
 Window Geometry:
   Displays:

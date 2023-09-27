@@ -70,7 +70,7 @@ private:
     int map_to_motor_range(double normalized_speed)
     { 
         int max_speed_value = 200;
-        int min_speed_value = 50;
+        int min_speed_value = 60;
         double mapped_speed = ( std::abs(normalized_speed) * max_speed_value ) + min_speed_value; // map [0, 1] -> [50, 200]
         if (mapped_speed < min_speed_value + 5){
             mapped_speed = 0;

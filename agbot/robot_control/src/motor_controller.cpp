@@ -53,7 +53,7 @@ private:
                 {robot_->sending_data();}
             current_rotation = next_rotation;
         }
-        
+
         set_speed_and_direction(left_speed,right_speed);
        
     }
@@ -69,13 +69,15 @@ private:
 
     int map_to_motor_range(double normalized_speed)
     { 
-        int max_speed_value = 200;
-        int min_speed_value = 60;
-        double mapped_speed = ( std::abs(normalized_speed) * max_speed_value ) + min_speed_value; // map [0, 1] -> [50, 200]
-        if (mapped_speed < min_speed_value + 5){
-            mapped_speed = 0;
+        int max_speed_value = 125;
+        int min_speed_value = 73;
+        double mapped_speed = ( std::abs(normalized_speed) * (max_speed_value-min_speed_value) ) + min_speed_value; // map [0, 1] -> [50, 200]
+        if (mapped_speed < min_speed_value + 1){
+            mapped_speed = 0.0;
+        } else if (mapped_speed > max_speed_value) {
+            mapped_speed = max_speed_value;
         }
-        return static_cast<int>(mapped_speed);
+        return static_cast<int>(std::round(mapped_speed));
     }
 
     int direction_corrector(double left_speed, double right_speed)

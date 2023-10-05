@@ -281,7 +281,7 @@
   <joint name="scan_joint" type="fixed">
       <parent link="plate_link"/>
       <child link="base_scan"/>
-      <origin xyz="${base_length/2 - lidar_radius} 0 ${plate_height/2 + lidar_length/2}" rpy="0 0 0"/>
+      <origin xyz="${base_length/2 - lidar_radius} 0 ${plate_height/2 + lidar_length/2}" rpy="0 0 3.14159"/>
   </joint>
 
   <!-- imu -->
@@ -301,7 +301,7 @@
   <joint name="imu_joint" type="fixed">
       <parent link="plate_link"/>
       <child link="imu_link"/>
-      <origin xyz="${base_length/2 - imu_length/2 } ${-base_width/2 + imu_width/2} ${plate_height/2 + imu_height/2}" rpy="0 0 0"/>
+      <origin xyz="${base_length/2 - imu_length/2 -0.065} ${-base_width/2 + imu_width/2 +0.065} ${plate_height/2 + imu_height/2}" rpy="0 0 0"/>
   </joint>
 
 
@@ -393,9 +393,6 @@
 
   </gazebo>
     
-
-
-
 
   <gazebo reference="gps_link">
     <sensor name="rtk_gps" type="gps">

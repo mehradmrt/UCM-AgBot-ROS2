@@ -100,15 +100,15 @@ ekf_filter_node_map:
     twist0_differential: false
     twist0_relative: false
     
-    odom1: gps/fix
-    odom1_config: [true,  true,  false,
-                  false, false, false,
-                  false, false, false,
-                  false, false, false,
-                  false, false, false]
-    odom1_queue_size: 10
-    odom1_differential: false
-    odom1_relative: false
+    # odom1: gps/fix
+    # odom1_config: [true,  true,  false,
+    #               false, false, false,
+    #               false, false, false,
+    #               false, false, false,
+    #               false, false, false]
+    # odom1_queue_size: 10
+    # odom1_differential: false
+    # odom1_relative: false
 
     imu0: vectornav/imu_uncompensated
     imu0_config: [false, false, false,
@@ -172,7 +172,7 @@ navsat_transform:
     yaw_offset: 0.0 # 1.570796327  
     zero_altitude: true
 
-    # broadcast_cartesian_transform: true
+    broadcast_cartesian_transform: true
     broadcast_utm_transform: true
     broadcast_utm_transform_as_parent_frame: true
 

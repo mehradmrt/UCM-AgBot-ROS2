@@ -59,7 +59,7 @@ class GPSPublisher_TCP(Node):
     def __init__(self):
         super().__init__('gps_subpub')
         self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
-        self.ip_address = "192.168.0.213"  # RS IP:192.168.0.222(RS+) and [.223(RS2) for robot_AP] and [.213 for ehsani_lab] 
+        self.ip_address = "192.168.0.223"  # RS IP:192.168.0.222(RS+) and [.223(RS2) for robot_AP] and [.213 for ehsani_lab] 
         self.port = 9001
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sensor_timeout = 0.5  

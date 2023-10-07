@@ -49,7 +49,7 @@ private:
 
         while (current_rotation != next_rotation){
             robot_->set_neutral();
-            for(int i = 0; i < 3; i++)
+            for(int i = 0; i < 2; i++)
                 {robot_->sending_data();}
             current_rotation = next_rotation;
         }

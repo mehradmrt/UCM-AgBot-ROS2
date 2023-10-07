@@ -79,12 +79,12 @@ public:
     boost::asio::write(socket_, boost::asio::buffer(data_));
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-    std::cout << "Sending data: ";
-    for(const auto &value : data_)
-    {
-        std::cout << static_cast<int>(value) << ' ';
-    }
-    std::cout << std::endl;
+    // std::cout << "Sending data: ";
+    // for(const auto &value : data_)
+    // {
+    //     std::cout << static_cast<int>(value) << ' ';
+    // }
+    // std::cout << std::endl;
   }
 
 private:

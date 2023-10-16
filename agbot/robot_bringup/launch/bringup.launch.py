@@ -16,8 +16,6 @@ def generate_launch_description():
 
     robot_bringup_dir = get_package_share_directory('robot_bringup')
 
-
-
     # Create the launch configuration variables
     namespace = LaunchConfiguration('namespace')
     use_namespace = LaunchConfiguration('use_namespace')

@@ -2,3 +2,9 @@
 	path = cobot/tmr_ros2
 	url = https://github.com/mehradmrt/tmr_ros2
 	branch = master
+[submodule "sensors/realsense-ros"]
+	path = sensors/realsense-ros
+	url = https://github.com/IntelRealSense/realsense-ros
+[submodule "sensors/vectornav"]
+	path = sensors/vectornav
+	url = https://github.com/mehradmrt/vectornav

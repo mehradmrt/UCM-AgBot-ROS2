@@ -1,113 +1,83 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-import cv2
 from cv_bridge import CvBridge
-from roboflow import Roboflow
-import numpy as np
-import open3d as o3d
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
+from ultralytics import YOLO
+
 
 class ImageProcessor(Node):
     def __init__(self):
         super().__init__('instance_segmentation')
 
-        self.depth_subscription = self.create_subscription(Image, '/camera/aligned_depth_to_color/image_raw', self.depth_callback, 10)
-        self.rgb_subscription = self.create_subscription(Image, '/camera/color/image_raw', self.rgb_callback, 10)
+        self.depth_subscription = self.create_subscription(
+            Image, '/camera/aligned_depth_to_color/image_raw', self.depth_callback, 10)
+        self.rgb_subscription = self.create_subscription(
+            Image, '/camera/color/image_raw', self.rgb_callback, 10)
+        
         self.rgb_image = None
         self.depth_image = None
         self.bridge = CvBridge()
 
-        
-        self.rf = Roboflow(api_key="UqYdMLWWT9ibnLSz86YT")
-        self.model = self.rf.workspace().project("actualdetectingleaves").version(2).model
-        self.processed = False  # To ensure we process only once
+        # Load YOLO model
+        self.model = YOLO('/home/arya/instance segmentation/best.pt')
+        self.processed = False
 
     def rgb_callback(self, msg):
         if self.processed:
             return
-        
+
         try:
             self.rgb_image = self.bridge.imgmsg_to_cv2(msg, "rgb8")
-            self.rgb_image = cv2.cvtColor(self.rgb_image, cv2.COLOR_RGB2BGR)
+            bgr_image = cv2.cvtColor(self.rgb_image, cv2.COLOR_RGB2BGR)
+            cv2.imwrite("/tmp/new_rgb.jpg", bgr_image)
         except Exception as e:
-            self.get_logger().error(f"Error converting ROS Image to OpenCV format: {e}")
-            return
-
-        image_path = "/tmp/temp_rgb.jpg"
-        try:
-            cv2.imwrite(image_path, self.rgb_image)
-        except Exception as e:
-            self.get_logger().error(f"Error writing image to disk: {e}")
-            return
-
-        try:
-            prediction = self.model.predict(image_path).json()
-            sorted_predictions = self.get_best_leaf_prediction(prediction)
-            best_prediction = sorted_predictions[2]  # Take the highest confidence instance
-        except Exception as e:
-            self.get_logger().error(f"Error getting predictions from Roboflow: {e}")
+            self.get_logger().error(f"Error processing RGB image: {e}")
             return
         
-        contour_points_list = [[int(point["x"]), int(point["y"])] for point in best_prediction["points"]]
-        mask = np.zeros(self.rgb_image.shape[:2], dtype=np.uint8)
+        results = self.model(['/tmp/new_rgb.jpg'],imgsz=1280)
+        for result in results:
+            best_mask = result.masks.masks[0].numpy()
 
-        # Draw the contour
-        cv2.drawContours(mask, [np.array(contour_points_list)], 0, (255), thickness=-1)  # The -1 thickness will fill the contour
+            instance_img = cv2.bitwise_and(
+                self.rgb_image, self.rgb_image, mask=best_mask)
+            cv2.imwrite("/tmp/instance.jpg", instance_img)
 
-        # Apply mask on RGB image to get instance image
-        instance_img = cv2.bitwise_and(self.rgb_image, self.rgb_image, mask=mask)
-        cv2.imwrite("/tmp/extracted_instance.jpg", instance_img)
+            if self.depth_image is not None:
+                depths = [self.depth_image[y, x]
+                            for y, x in zip(*np.where(best_mask))]
+                points = [(x, y, depth)
+                            for x, y, depth in zip(*np.where(best_mask), depths)]
+                
+                self.plot_3d_scatter(points)
 
-        if best_prediction:
-            points, colors = [], []
-            for y in range(self.rgb_image.shape[0]):
-                for x in range(self.rgb_image.shape[1]):
-                    if mask[y, x] > 0:
-                        depth = self.depth_image[y, x]
-                        if depth > 0:
-                            points.append([x, y, depth])
-                            # colors.append(self.rgb_image[y, x])
-
-            x = [pt[0] for pt in points]
-            y = [pt[1] for pt in points]
-            z = [pt[2] for pt in points]
-
-            # Create a new figure
-            fig = plt.figure()
-
-            # Add 3d subplot
-            # The '111' means 1x1 grid, first subplot, similar to MATLAB-style
-            ax = fig.add_subplot(111, projection='3d')
-
-            # Scatter plot
-            ax.scatter(x, y, z, c='r', marker='o')
-            ax.set_xlabel('X')
-            ax.set_ylabel('Y')
-            ax.set_zlabel('Depth')
-
-            # Save the figure as an image
-            plt.savefig("/tmp/3d_scatter_plot.png")
-
-            # Show the plot in a window
-            plt.show()
-
-
-
-
-        self.processed = True  # Mark that we've processed a frame
+        self.processed = True
 
     def depth_callback(self, msg):
         try:
             self.depth_image = self.bridge.imgmsg_to_cv2(msg, "16UC1")
         except Exception as e:
-            self.get_logger().error(f"Error converting depth ROS Image to OpenCV format: {e}")
+            self.get_logger().error(f"Error processing depth image: {e}")
 
-    def get_best_leaf_prediction(self, prediction_data):
-        good_leaf_predictions = [p for p in prediction_data["predictions"] if p["class"] == "good leaf"]
-        sorted_predictions = sorted(good_leaf_predictions, key=lambda x: -x["confidence"])  # sort in descending order
-        return sorted_predictions
+    def plot_3d_scatter(self, points):
+        x = [pt[0] for pt in points]
+        y = [pt[1] for pt in points]
+        z = [pt[2] for pt in points]
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(x, y, z, c='r', marker='o')
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Depth')
+
+        plt.savefig("/tmp/3d_scatter_plot.png")
+        plt.show()
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -115,6 +85,7 @@ def main(args=None):
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

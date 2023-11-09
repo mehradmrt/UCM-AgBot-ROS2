@@ -4,7 +4,7 @@
 	branch = master
 [submodule "sensors/realsense-ros"]
 	path = sensors/realsense-ros
-	url = https://github.com/IntelRealSense/realsense-ros
+	url = https://github.com/mehradmrt/realsense-ros
 [submodule "sensors/vectornav"]
 	path = sensors/vectornav
 	url = https://github.com/mehradmrt/vectornav

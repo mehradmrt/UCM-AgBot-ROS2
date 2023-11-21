@@ -12,7 +12,7 @@ from sensor_msgs.msg import PointCloud2
 from cv_bridge import CvBridge
 from ultralytics import YOLO
 from sklearn.cluster import DBSCAN
-
+from sklearn.decomposition import PCA
 
 class ImageProcessor(Node):
     def __init__(self):
@@ -45,6 +45,9 @@ class ImageProcessor(Node):
         self.points, self.colors = self.extract_points_and_colors(msg)
         self.combined_masks, self.ordered_masks, self.confs = self.extract_masks()
         self.masks_xyzs = self.extract_masks_xyzs()
+        self.vectors = self.fit_plane_and_find_normal()
+        print(self.masks_xyzs)
+        print(self.vectors)
 
         self.plot_masked_points_with_centers()
         self.plotting_o3d()
@@ -100,12 +103,18 @@ class ImageProcessor(Node):
         for mask in self.ordered_masks:
             mask_boolean = mask.astype(bool)
             masked_points = xyz_reshaped[mask_boolean]
+            # masks_xyzs.append(filtered_masked_points)
             filtered_masked_points = self.filter_outliers_dbscan(masked_points)
-            masks_xyzs.append(filtered_masked_points)
+            depth_filtered_points = self.filter_points_by_depth(filtered_masked_points)
+
+            if depth_filtered_points.size > 0:
+                masks_xyzs.append(depth_filtered_points)
+            else:
+                masks_xyzs.append(np.array([], dtype=masked_points.dtype))
 
         return masks_xyzs
 
-    def filter_outliers_dbscan(self, points, eps=0.03, min_samples=10):
+    def filter_outliers_dbscan(self, points, eps=0.01, min_samples=10):
         if len(points) < min_samples:
             return points
 
@@ -115,11 +124,31 @@ class ImageProcessor(Node):
 
         return filtered_masked_points
 
+    def filter_points_by_depth(self, points, Z_threshold=0.1):
+        filtered_points = points[points[:, 2] > Z_threshold]
+        return filtered_points
+
+    def fit_plane_and_find_normal(self):
+        
+        vectors = []
+        for points in self.masks_xyzs:
+
+            pca = PCA(n_components=3)
+            pca.fit(points)
+            normal_vector = pca.components_[-1]
+
+            if normal_vector[1] > 0:
+                normal_vector = -normal_vector
+            
+            vectors.append(normal_vector)
+
+        return vectors
+
 
     def plotting_o3d(self):
         cloud = o3d.geometry.PointCloud()
         cloud.points = o3d.utility.Vector3dVector(self.points)
-        cloud.colors = o3d.utility.Vector3dVector(self.colors / 255.0) 
+        # cloud.colors = o3d.utility.Vector3dVector(self.colors / 255.0) 
 
         xyz_reshaped = self.points.reshape((self.height, self.width, 3))
         filtered_xyz = xyz_reshaped[self.combined_masks.astype(bool)]
@@ -146,7 +175,7 @@ class ImageProcessor(Node):
             points = self.masks_xyzs[i]
             if points.size == 0:
                 continue
-
+            
             median_point = np.median(points, axis=0)
             distances = np.linalg.norm(points - median_point, axis=1)
             closest_point_index = np.argmin(distances)
@@ -154,6 +183,13 @@ class ImageProcessor(Node):
 
             ax.scatter(points[:, 0], points[:, 1], points[:, 2], color=colors(i), s=1)
             ax.scatter(central_point[0], central_point[1], central_point[2], color='black', s=60)
+
+            normal_vector = self.vectors[i]
+            vector_start = central_point
+            vector_end = central_point + normal_vector * 0.1  
+            ax.quiver(vector_start[0], vector_start[1], vector_start[2], 
+                    normal_vector[0], normal_vector[1], normal_vector[2], 
+                    length=0.1, color='black', normalize=True)
 
         ax.set_xlabel('X')
         ax.set_ylabel('Y')

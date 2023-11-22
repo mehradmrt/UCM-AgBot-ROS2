@@ -34,7 +34,14 @@ class ImageProcessor(Node):
         self.combined_masks = None
         self.ordered_masks = None
         self.confs = None
-        self.top_n = 3
+        self.masks_xyzs = None
+        self.midpoints = None
+        self.normal_vectors = None
+        self.axes = None
+
+        self.top_n = 5
+        self.dbscan_eps = 0.01
+        self.dbscan_ms = 10
 
         self.processed = False
 
@@ -45,11 +52,12 @@ class ImageProcessor(Node):
         self.points, self.colors = self.extract_points_and_colors(msg)
         self.combined_masks, self.ordered_masks, self.confs = self.extract_masks()
         self.masks_xyzs = self.extract_masks_xyzs()
-        self.vectors = self.fit_plane_and_find_normal()
-        print(self.masks_xyzs)
-        print(self.vectors)
+        self.midpoints = self.extract_midpoints()
+        self.normal_vectors = self.fit_plane_and_find_normal()
+        self.axes = self.axes_for_masks()
+        print(self.axes)
 
-        self.plot_masked_points_with_centers()
+        self.plot_masked_points()
         self.plotting_o3d()
         
 
@@ -101,23 +109,24 @@ class ImageProcessor(Node):
         xyz_reshaped = self.points.reshape((self.height, self.width, 3))
 
         for mask in self.ordered_masks:
-            mask_boolean = mask.astype(bool)
-            masked_points = xyz_reshaped[mask_boolean]
-            # masks_xyzs.append(filtered_masked_points)
-            filtered_masked_points = self.filter_outliers_dbscan(masked_points)
-            depth_filtered_points = self.filter_points_by_depth(filtered_masked_points)
-
-            if depth_filtered_points.size > 0:
+            try:
+                mask_boolean = mask.astype(bool)
+                masked_points = xyz_reshaped[mask_boolean]
+                filtered_masked_points = self.filter_outliers_dbscan(masked_points)
+                depth_filtered_points = self.filter_points_by_depth(filtered_masked_points)
                 masks_xyzs.append(depth_filtered_points)
-            else:
-                masks_xyzs.append(np.array([], dtype=masked_points.dtype))
+            except Exception as e:
+                self.get_logger().error('Error in extract_masks_xyzs function: {}'.format(str(e)))
 
         return masks_xyzs
 
-    def filter_outliers_dbscan(self, points, eps=0.01, min_samples=10):
-        if len(points) < min_samples:
-            return points
+    def filter_outliers_dbscan(self, points):
+        eps=self.dbscan_eps
+        min_samples=self.dbscan_ms
 
+        # if len(points) < min_samples:
+        #     return points
+            
         clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(points)
         labels = clustering.labels_
         filtered_masked_points = points[labels != -1]
@@ -127,6 +136,20 @@ class ImageProcessor(Node):
     def filter_points_by_depth(self, points, Z_threshold=0.1):
         filtered_points = points[points[:, 2] > Z_threshold]
         return filtered_points
+
+
+    def extract_midpoints(self):
+        midpoints = []
+        for points in self.masks_xyzs:
+
+            median_point = np.median(points, axis=0)
+            distances = np.linalg.norm(points - median_point, axis=1)
+            closest_point_index = np.argmin(distances)
+            central_point = points[closest_point_index]
+
+            midpoints.append(central_point)
+
+        return midpoints
 
     def fit_plane_and_find_normal(self):
         
@@ -143,6 +166,103 @@ class ImageProcessor(Node):
             vectors.append(normal_vector)
 
         return vectors
+
+    def axes_for_masks(self):
+        axes = []
+
+        for i in range(len(self.masks_xyzs)):
+
+            # Find edge points
+            edge_points = self.find_edge_points(self.ordered_masks[i])
+            # Convert edge points to XYZ coordinates
+            edge_xyz_points = self.points.reshape((self.height, self.width, 3))[edge_points[:, 0], edge_points[:, 1]]
+
+            # Find the closest edge point to the midpoint
+            distances = np.linalg.norm(edge_xyz_points - self.midpoints[i], axis=1)
+            closest_point = edge_xyz_points[np.argmin(distances)]
+
+            # Vector from midpoint to closest edge point
+            vector_to_midpoint = self.midpoints[i] - closest_point
+
+            # Project this vector onto the plane to get X-axis
+            x_axis = self.project_vector_onto_plane(vector_to_midpoint, self.normal_vectors[i])
+            
+            # Calculate Y-axis by crossing X and Z (normal) axes
+            y_axis = np.cross(self.normal_vectors[i], x_axis)
+
+            axes.append([x_axis, y_axis, self.normal_vectors[i]])
+
+        return axes
+
+    def find_edge_points(self, mask):
+        edges = cv2.Canny(mask.astype(np.uint8) * 255, 100, 200)
+        return np.argwhere(edges > 0)
+
+    def project_vector_onto_plane(self, vector, normal_vector):
+        projected_vector = vector - np.dot(vector, normal_vector) * normal_vector
+        return projected_vector / np.linalg.norm(projected_vector)
+
+
+    def plot_masked_points(self):
+        num_masks = min(len(self.masks_xyzs), self.top_n)
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        colors = plt.cm.get_cmap('hsv', num_masks)
+
+        for i in range(num_masks):
+            points = self.masks_xyzs[i]
+            if points.size == 0 or self.midpoints[i] is None:
+                continue
+
+            central_point = self.midpoints[i]
+            ax.scatter(points[:, 0], points[:, 1], points[:, 2], color=colors(i), s=1)
+            ax.scatter(central_point[0], central_point[1], central_point[2], color='black', s=60)
+
+            for axis_index, axis_color in enumerate(['red', 'green', 'blue']):  # X, Y, Z axes
+                axis_vector = self.axes[i][axis_index]
+                ax.quiver(central_point[0], central_point[1], central_point[2], 
+                        axis_vector[0], axis_vector[1], axis_vector[2], 
+                        length=0.1, color=axis_color, normalize=True)
+
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.view_init(elev=10, azim=120)
+        plt.show()
+
+
+
+    # def plot_masked_points_with_centers(self):
+    #     num_masks = min(len(self.masks_xyzs), self.top_n)
+    #     fig = plt.figure()
+    #     ax = fig.add_subplot(111, projection='3d')
+    #     colors = plt.cm.get_cmap('hsv', num_masks)
+
+    #     for i in range(num_masks):
+    #         points = self.masks_xyzs[i]
+    #         if points.size == 0:
+    #             continue
+            
+    #         median_point = np.median(points, axis=0)
+    #         distances = np.linalg.norm(points - median_point, axis=1)
+    #         closest_point_index = np.argmin(distances)
+    #         central_point = points[closest_point_index]
+
+    #         ax.scatter(points[:, 0], points[:, 1], points[:, 2], color=colors(i), s=1)
+    #         ax.scatter(central_point[0], central_point[1], central_point[2], color='black', s=60)
+
+    #         normal_vector = self.normal_vectors[i]
+    #         vector_start = central_point
+    #         vector_end = central_point + normal_vector * 0.1  
+    #         ax.quiver(vector_start[0], vector_start[1], vector_start[2], 
+    #                 normal_vector[0], normal_vector[1], normal_vector[2], 
+    #                 length=0.1, color='black', normalize=True)
+
+    #     ax.set_xlabel('X')
+    #     ax.set_ylabel('Y')
+    #     ax.set_zlabel('Z')
+    #     ax.view_init(elev=10, azim=120)
+    #     plt.show()
 
 
     def plotting_o3d(self):
@@ -165,37 +285,8 @@ class ImageProcessor(Node):
         vis.run()
         vis.destroy_window()
 
-    def plot_masked_points_with_centers(self):
-        num_masks = min(len(self.masks_xyzs), self.top_n)
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        colors = plt.cm.get_cmap('hsv', num_masks)
 
-        for i in range(num_masks):
-            points = self.masks_xyzs[i]
-            if points.size == 0:
-                continue
-            
-            median_point = np.median(points, axis=0)
-            distances = np.linalg.norm(points - median_point, axis=1)
-            closest_point_index = np.argmin(distances)
-            central_point = points[closest_point_index]
 
-            ax.scatter(points[:, 0], points[:, 1], points[:, 2], color=colors(i), s=1)
-            ax.scatter(central_point[0], central_point[1], central_point[2], color='black', s=60)
-
-            normal_vector = self.vectors[i]
-            vector_start = central_point
-            vector_end = central_point + normal_vector * 0.1  
-            ax.quiver(vector_start[0], vector_start[1], vector_start[2], 
-                    normal_vector[0], normal_vector[1], normal_vector[2], 
-                    length=0.1, color='black', normalize=True)
-
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.view_init(elev=10, azim=120)
-        plt.show()
 
 def main(args=None):
     rclpy.init(args=args)

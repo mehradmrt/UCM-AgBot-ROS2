@@ -5,6 +5,7 @@ import cv2
 from PIL import Image
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.spatial.transform import Rotation as R
 
 import rclpy
 from rclpy.node import Node
@@ -19,7 +20,7 @@ class ImageProcessor(Node):
         super().__init__('instance_segmentation')
         self.point_cloud_subscription = self.create_subscription(
             PointCloud2, '/camera/depth/color/points', self.point_cloud_callback, 10)
-
+        
         self.bridge = CvBridge()
         self.model = YOLO('/home/arya/instance_segmentation/best.pt')
         self.conf_cutoff = 0.7
@@ -39,7 +40,7 @@ class ImageProcessor(Node):
         self.normal_vectors = None
         self.axes = None
 
-        self.top_n = 5
+        self.top_n = 3
         self.dbscan_eps = 0.01
         self.dbscan_ms = 10
 
@@ -55,11 +56,11 @@ class ImageProcessor(Node):
         self.midpoints = self.extract_midpoints()
         self.normal_vectors = self.fit_plane_and_find_normal()
         self.axes = self.axes_for_masks()
-        print(self.axes)
+        self.locations = self.transform_axes_and_calculate_angles()
+        print(self.locations)
 
         self.plot_masked_points()
         self.plotting_o3d()
-        
 
         self.processed = True
 
@@ -103,7 +104,6 @@ class ImageProcessor(Node):
 
         return combined_masks, ordered_masks, confs
 
-
     def extract_masks_xyzs(self):
         masks_xyzs = []
         xyz_reshaped = self.points.reshape((self.height, self.width, 3))
@@ -137,7 +137,6 @@ class ImageProcessor(Node):
         filtered_points = points[points[:, 2] > Z_threshold]
         return filtered_points
 
-
     def extract_midpoints(self):
         midpoints = []
         for points in self.masks_xyzs:
@@ -152,12 +151,11 @@ class ImageProcessor(Node):
         return midpoints
 
     def fit_plane_and_find_normal(self):
-        
         vectors = []
         for points in self.masks_xyzs:
 
             pca = PCA(n_components=3)
-            pca.fit(points)
+            pca.fit(points) 
             normal_vector = pca.components_[-1]
 
             if normal_vector[1] > 0:
@@ -172,25 +170,19 @@ class ImageProcessor(Node):
 
         for i in range(len(self.masks_xyzs)):
 
-            # Find edge points
             edge_points = self.find_edge_points(self.ordered_masks[i])
-            # Convert edge points to XYZ coordinates
             edge_xyz_points = self.points.reshape((self.height, self.width, 3))[edge_points[:, 0], edge_points[:, 1]]
 
-            # Find the closest edge point to the midpoint
             distances = np.linalg.norm(edge_xyz_points - self.midpoints[i], axis=1)
             closest_point = edge_xyz_points[np.argmin(distances)]
 
-            # Vector from midpoint to closest edge point
-            vector_to_midpoint = self.midpoints[i] - closest_point
+            vector_to_midpoint =  closest_point - self.midpoints[i] 
 
-            # Project this vector onto the plane to get X-axis
-            x_axis = self.project_vector_onto_plane(vector_to_midpoint, self.normal_vectors[i])
+            mid_axis = self.project_vector_onto_plane(vector_to_midpoint, self.normal_vectors[i])
             
-            # Calculate Y-axis by crossing X and Z (normal) axes
-            y_axis = np.cross(self.normal_vectors[i], x_axis)
+            cross_axis = np.cross(self.normal_vectors[i], mid_axis)
 
-            axes.append([x_axis, y_axis, self.normal_vectors[i]])
+            axes.append([mid_axis, cross_axis, self.normal_vectors[i]])
 
         return axes
 
@@ -202,6 +194,24 @@ class ImageProcessor(Node):
         projected_vector = vector - np.dot(vector, normal_vector) * normal_vector
         return projected_vector / np.linalg.norm(projected_vector)
 
+    def transform_axes_and_calculate_angles(self):
+        transformed_elements = []
+        for i, axis_set in enumerate(self.axes):
+            mid_axis, cross_axis, normal_axis = axis_set[0], axis_set[1], axis_set[2]
+            position = self.midpoints[i]
+            transformed_p=( np.array([17.5, 124.33, -195.62])+
+                            np.array([-position[0], -position[1], position[2]])*1000)
+
+            transformed_axes = np.array([[-normal_axis[0],  -normal_axis[1], normal_axis[2]],
+                                         [cross_axis[0], cross_axis[1], -cross_axis[2]],
+                                        [-mid_axis[0],  -mid_axis[1],   mid_axis[2]]])
+            
+            rotation_matrix = R.from_matrix(transformed_axes)
+            rotation_as_euler = rotation_matrix.as_euler('zyx', degrees=True)
+
+            transformed_elements.append(np.concatenate([transformed_p, rotation_as_euler]))
+
+        return np.array(transformed_elements)
 
     def plot_masked_points(self):
         num_masks = min(len(self.masks_xyzs), self.top_n)
@@ -227,42 +237,8 @@ class ImageProcessor(Node):
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
-        ax.view_init(elev=10, azim=120)
+        ax.view_init(elev=10, azim=0)
         plt.show()
-
-
-
-    # def plot_masked_points_with_centers(self):
-    #     num_masks = min(len(self.masks_xyzs), self.top_n)
-    #     fig = plt.figure()
-    #     ax = fig.add_subplot(111, projection='3d')
-    #     colors = plt.cm.get_cmap('hsv', num_masks)
-
-    #     for i in range(num_masks):
-    #         points = self.masks_xyzs[i]
-    #         if points.size == 0:
-    #             continue
-            
-    #         median_point = np.median(points, axis=0)
-    #         distances = np.linalg.norm(points - median_point, axis=1)
-    #         closest_point_index = np.argmin(distances)
-    #         central_point = points[closest_point_index]
-
-    #         ax.scatter(points[:, 0], points[:, 1], points[:, 2], color=colors(i), s=1)
-    #         ax.scatter(central_point[0], central_point[1], central_point[2], color='black', s=60)
-
-    #         normal_vector = self.normal_vectors[i]
-    #         vector_start = central_point
-    #         vector_end = central_point + normal_vector * 0.1  
-    #         ax.quiver(vector_start[0], vector_start[1], vector_start[2], 
-    #                 normal_vector[0], normal_vector[1], normal_vector[2], 
-    #                 length=0.1, color='black', normalize=True)
-
-    #     ax.set_xlabel('X')
-    #     ax.set_ylabel('Y')
-    #     ax.set_zlabel('Z')
-    #     ax.view_init(elev=10, azim=120)
-    #     plt.show()
 
 
     def plotting_o3d(self):
@@ -284,9 +260,6 @@ class ImageProcessor(Node):
         vis.add_geometry(coordinate_frame)
         vis.run()
         vis.destroy_window()
-
-
-
 
 def main(args=None):
     rclpy.init(args=args)

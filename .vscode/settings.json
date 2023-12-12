@@ -76,7 +76,8 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "bit": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "filesystem": "cpp"
     },
     "arduino.useArduinoCli": true,
     "cmake.sourceDirectory": "/home/arya/AgBot_reps/UCM-AgBot-ROS2/src/agbot/robot_control"

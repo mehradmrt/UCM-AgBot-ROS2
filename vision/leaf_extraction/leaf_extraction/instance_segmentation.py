@@ -7,9 +7,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.spatial.transform import Rotation as R
 
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
+from geometry_msgs.msg import Pose, PoseArray
 from cv_bridge import CvBridge
 from ultralytics import YOLO
 from sklearn.cluster import DBSCAN
@@ -20,6 +22,8 @@ class ImageProcessor(Node):
         super().__init__('instance_segmentation')
         self.point_cloud_subscription = self.create_subscription(
             PointCloud2, '/camera/depth/color/points', self.point_cloud_callback, 10)
+        
+        self.pose_array_publisher = self.create_publisher(PoseArray, '/target_leaves', 10)
         
         self.bridge = CvBridge()
         self.model = YOLO('/home/arya/instance_segmentation/best.pt')
@@ -40,7 +44,7 @@ class ImageProcessor(Node):
         self.normal_vectors = None
         self.axes = None
 
-        self.top_n = 3
+        self.top_n = 10
         self.dbscan_eps = 0.01
         self.dbscan_ms = 10
 
@@ -56,7 +60,8 @@ class ImageProcessor(Node):
         self.midpoints = self.extract_midpoints()
         self.normal_vectors = self.fit_plane_and_find_normal()
         self.axes = self.axes_for_masks()
-        self.locations = self.transform_axes_and_calculate_angles()
+        self.locations = self.transform_axes_and_calculate_rotation()
+        self.publish_pose_array()
         print(self.locations)
 
         self.plot_masked_points()
@@ -170,19 +175,23 @@ class ImageProcessor(Node):
 
         for i in range(len(self.masks_xyzs)):
 
-            edge_points = self.find_edge_points(self.ordered_masks[i])
-            edge_xyz_points = self.points.reshape((self.height, self.width, 3))[edge_points[:, 0], edge_points[:, 1]]
+            ## first approach (closest point)
+            # edge_points = self.find_edge_points(self.ordered_masks[i])
+            # edge_xyz_points = self.points.reshape((self.height, self.width, 3))[edge_points[:, 0], edge_points[:, 1]]
+            # distances = np.linalg.norm(edge_xyz_points - self.midpoints[i], axis=1)
+            # closest_point = edge_xyz_points[np.argmin(distances)]
+            # vector_to_midpoint = closest_point - self.midpoints[i]
 
-            distances = np.linalg.norm(edge_xyz_points - self.midpoints[i], axis=1)
-            closest_point = edge_xyz_points[np.argmin(distances)]
 
-            vector_to_midpoint =  closest_point - self.midpoints[i] 
+            ## Second approach (stem from the lowest y value)
+            mask_xyz_points = self.masks_xyzs[i]
+            lowest_y_point = mask_xyz_points[np.argmin(mask_xyz_points[:, 1])]
+            vector_to_midpoint = lowest_y_point - self.midpoints[i]
 
-            mid_axis = self.project_vector_onto_plane(vector_to_midpoint, self.normal_vectors[i])
+            stem_mid_axis = self.project_vector_onto_plane(vector_to_midpoint, self.normal_vectors[i])
             
-            cross_axis = np.cross(self.normal_vectors[i], mid_axis)
-
-            axes.append([mid_axis, cross_axis, self.normal_vectors[i]])
+            cross_axis = np.cross(self.normal_vectors[i], stem_mid_axis)
+            axes.append([self.normal_vectors[i], stem_mid_axis, cross_axis])
 
         return axes
 
@@ -194,24 +203,45 @@ class ImageProcessor(Node):
         projected_vector = vector - np.dot(vector, normal_vector) * normal_vector
         return projected_vector / np.linalg.norm(projected_vector)
 
-    def transform_axes_and_calculate_angles(self):
+    def transform_axes_and_calculate_rotation(self):
         transformed_elements = []
         for i, axis_set in enumerate(self.axes):
-            mid_axis, cross_axis, normal_axis = axis_set[0], axis_set[1], axis_set[2]
             position = self.midpoints[i]
-            transformed_p=( np.array([17.5, 124.33, -195.62])+
+            transformed_p=( np.array([17.5, 124.33, -195.62])+  ### the vector that connects RG2 to camera            
                             np.array([-position[0], -position[1], position[2]])*1000)
-
-            transformed_axes = np.array([[-normal_axis[0],  -normal_axis[1], normal_axis[2]],
-                                         [cross_axis[0], cross_axis[1], -cross_axis[2]],
-                                        [-mid_axis[0],  -mid_axis[1],   mid_axis[2]]])
             
-            rotation_matrix = R.from_matrix(transformed_axes)
-            rotation_as_euler = rotation_matrix.as_euler('zyx', degrees=True)
+            axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
 
+            transformed_axes = np.array([[-axis1[0], -axis1[1], axis1[2]],
+                                         [-axis2[0], -axis2[1], axis2[2]],
+                                         [-axis3[0], -axis3[1], axis3[2]]])
+
+            # rotmat = R.from_matrix(transformed_axes).inv()
+            # rotation_as_euler = rotmat.as_euler('xyz',degrees=True)
+            # transformed_elements.append(np.concatenate([transformed_p, rotation_as_euler]))
+
+            rotmat = R.from_matrix(transformed_axes)
+            rotation_as_euler = rotmat.as_quat()
             transformed_elements.append(np.concatenate([transformed_p, rotation_as_euler]))
 
         return np.array(transformed_elements)
+    
+    def publish_pose_array(self):
+        pose_array_msg = PoseArray()
+
+        for transformed_element in self.locations:
+            pose_msg = Pose()
+            pose_msg.position.x = transformed_element[0]
+            pose_msg.position.y = transformed_element[1]
+            pose_msg.position.z = transformed_element[2]
+            pose_msg.orientation.x = transformed_element[3]
+            pose_msg.orientation.y = transformed_element[4]
+            pose_msg.orientation.z = transformed_element[5]
+            pose_msg.orientation.w = transformed_element[6]
+
+            pose_array_msg.poses.append(pose_msg)
+
+        self.pose_array_publisher.publish(pose_array_msg)
 
     def plot_masked_points(self):
         num_masks = min(len(self.masks_xyzs), self.top_n)
@@ -228,7 +258,7 @@ class ImageProcessor(Node):
             ax.scatter(points[:, 0], points[:, 1], points[:, 2], color=colors(i), s=1)
             ax.scatter(central_point[0], central_point[1], central_point[2], color='black', s=60)
 
-            for axis_index, axis_color in enumerate(['red', 'green', 'blue']):  # X, Y, Z axes
+            for axis_index, axis_color in enumerate(['black', 'green', 'blue']):  # X, Y, Z axes
                 axis_vector = self.axes[i][axis_index]
                 ax.quiver(central_point[0], central_point[1], central_point[2], 
                         axis_vector[0], axis_vector[1], axis_vector[2], 
@@ -237,7 +267,7 @@ class ImageProcessor(Node):
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
-        ax.view_init(elev=10, azim=0)
+        ax.view_init(elev=10, azim=270)
         plt.show()
 
 

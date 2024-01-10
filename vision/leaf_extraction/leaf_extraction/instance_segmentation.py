@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.spatial.transform import Rotation as R
 
-
+from rclpy.qos import QoSProfile, DurabilityPolicy
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
@@ -23,7 +23,8 @@ class ImageProcessor(Node):
         self.point_cloud_subscription = self.create_subscription(
             PointCloud2, '/camera/depth/color/points', self.point_cloud_callback, 10)
         
-        self.pose_array_publisher = self.create_publisher(PoseArray, '/target_leaves', 10)
+        self.pose_array_publisher = self.create_publisher(PoseArray,'/target_leaves',
+                                        QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         
         self.bridge = CvBridge()
         self.model = YOLO('/home/arya/instance_segmentation/best.pt')

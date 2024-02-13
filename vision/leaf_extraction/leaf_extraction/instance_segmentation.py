@@ -208,10 +208,10 @@ class ImageProcessor(Node):
         transformed_elements = []
         for i, axis_set in enumerate(self.axes):
             position = self.midpoints[i]
-            transformed_p=( np.array([17.5, 124.33, -195.62])+  ### the vector that connects RG2 to camera            
-                            np.array([-position[0], -position[1], position[2]])*1000-
-                            np.array([0, 0, 215.0]) ### subtract the flange to endeffector vector for Moveit 
-                            )*0.001
+            transformed_p=( np.array([17.5, 124.33, -195.62])*0.001+  ### the vector that connects RG2 to camera            
+                            np.array([-position[0], -position[1], position[2]])
+                            # np.array([0, 0, 215.0]) ### subtract the flange to endeffector vector for Moveit 
+                            )
             
             axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
 

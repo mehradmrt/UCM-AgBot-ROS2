@@ -183,16 +183,25 @@ class ImageProcessor(Node):
             # closest_point = edge_xyz_points[np.argmin(distances)]
             # vector_to_midpoint = closest_point - self.midpoints[i]
 
-
             ## Second approach (stem from the lowest y value)
             mask_xyz_points = self.masks_xyzs[i]
             lowest_y_point = mask_xyz_points[np.argmin(mask_xyz_points[:, 1])]
             vector_to_midpoint = lowest_y_point - self.midpoints[i]
 
             stem_mid_axis = self.project_vector_onto_plane(vector_to_midpoint, self.normal_vectors[i])
-            
             cross_axis = np.cross(self.normal_vectors[i], stem_mid_axis)
-            axes.append([self.normal_vectors[i], stem_mid_axis, cross_axis])
+            axes.append([self.normal_vectors[i], stem_mid_axis, cross_axis]) 
+
+            ## third approach (stem from the highest y value or the tip)
+            # mask_xyz_points = self.masks_xyzs[i]
+            # highest_y_point = mask_xyz_points[np.argmax(mask_xyz_points[:, 1])]
+            # vector_to_midpoint = highest_y_point - self.midpoints[i]
+
+            # tip_mid_axis = self.project_vector_onto_plane(vector_to_midpoint, self.normal_vectors[i])
+    
+            # cross_axis = np.cross(self.normal_vectors[i], tip_mid_axis)
+            # axes.append([-self.normal_vectors[i], -tip_mid_axis, cross_axis]) 
+            # # axes.append([-self.normal_vectors[i], -tip_mid_axis, cross_axis]) #rotat3 180 deg around Z to protect sensors on RG2
 
         return axes
 
@@ -208,9 +217,10 @@ class ImageProcessor(Node):
         transformed_elements = []
         for i, axis_set in enumerate(self.axes):
             position = self.midpoints[i]
-            transformed_p=( np.array([17.5, 124.33, -195.62])*0.001+  ### the vector that connects RG2 to camera            
+            transformed_p=( np.array([17.5, 124.33, -195.62])*0.001+  ### the vector that connects RG2 to camera
+                            np.array([0.0, 0.0, -15.0])*0.001+ ### the gap between the new printed fingers and the old ones  
                             np.array([-position[0], -position[1], position[2]])
-                            # np.array([0, 0, 215.0]) ### subtract the flange to endeffector vector for Moveit 
+                            # np.array([0, 0, 230.0]) ### subtract the flange to endeffector vector for Moveit 
                             )
             
             axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
@@ -223,12 +233,12 @@ class ImageProcessor(Node):
             # rotation_as_euler = rotmat.as_euler('xyz',degrees=True)
             # transformed_elements.append(np.concatenate([transformed_p, rotation_as_euler]))
 
-            rotmat = R.from_matrix(transformed_axes)
+            rotmat = R.from_matrix(transformed_axes).inv()
             rotation_as_euler = rotmat.as_quat()
             transformed_elements.append(np.concatenate([transformed_p, rotation_as_euler]))
 
         return np.array(transformed_elements)
-    
+
     def publish_pose_array(self):
         pose_array_msg = PoseArray()
 
@@ -273,7 +283,6 @@ class ImageProcessor(Node):
         ax.view_init(elev=10, azim=270)
         plt.show()
 
-
     def plotting_o3d(self):
         cloud = o3d.geometry.PointCloud()
         cloud.points = o3d.utility.Vector3dVector(self.points)
@@ -283,7 +292,7 @@ class ImageProcessor(Node):
         filtered_xyz = xyz_reshaped[self.combined_masks.astype(bool)]
         filtered_cloud = o3d.geometry.PointCloud()
         filtered_cloud.points = o3d.utility.Vector3dVector(filtered_xyz)
-        filtered_cloud.paint_uniform_color([1, 0, 0]) 
+        filtered_cloud.paint_uniform_color([0, 0, 0]) 
 
         coordinate_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0,0,0])
         vis = o3d.visualization.Visualizer()

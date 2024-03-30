@@ -8,6 +8,6 @@
 [submodule "sensors/vectornav"]
 	path = sensors/vectornav
 	url = https://github.com/mehradmrt/vectornav
-[submodule "devices/onrobot_gripper"]
-	path = devices/onrobot_gripper
-	url = https://github.com/mehradmrt/onrobot_gripper
+[submodule "devices/onrobot_grippers_ros2"]
+	path = devices/onrobot_grippers_ros2
+	url = https://github.com/mehradmrt/onrobot_grippers_ros2

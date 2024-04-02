@@ -3,9 +3,9 @@
 <package format="3">
   <name>leaf_extraction</name>
   <version>0.0.0</version>
-  <description>Package developed for leaf extraction</description>
-  <maintainer email="mehradmortazavi@gmail.com">MM</maintainer>
-  <license>Apache 2.0</license>
+  <description>Image processing pipeline for leaf canopy extraction</description>
+  <maintainer email="smortazavi3@ucmerced.com">Mehrad Mortazavi</maintainer>
+  <license>Apache License 2.0</license>
 
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>

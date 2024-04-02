@@ -4,7 +4,7 @@
   <name>robot_simulator</name>
   <version>1.0.0</version>
   <description>This package is for robot simulation</description>
-  <maintainer email="smortazavi3@ucmerced.edu">MehradMortazavi</maintainer>
+  <maintainer email="smortazavi3@ucmerced.edu">Mehrad Mortazavi</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

@@ -13,10 +13,10 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='MM',
+    maintainer='Mehrad Mortazavi',
     maintainer_email='smortazavi3@ucmerced.edu',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    description='ROS2 driver for Emlid RTK-GNSS system',
+    license='Apache License 2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

@@ -80,7 +80,6 @@ def generate_launch_description():
 
     ld = LaunchDescription()
     
-    # Add the commands to the launch description
     ld.add_action(robot_state_publisher_cmd)
     ld.add_action(gzserver_cmd)
     ld.add_action(gzclient_cmd)

@@ -4,8 +4,8 @@
   <name>custom_interfaces</name>
   <version>1.0.0</version>
   <description>Robot Custome Interfaces</description>
-  <maintainer email="smortazavi3@ucmerced.edu">MM</maintainer>
-  <license>Apache2.0</license>
+  <maintainer email="smortazavi3@ucmerced.edu">Mehrad Mortazavi</maintainer>
+  <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

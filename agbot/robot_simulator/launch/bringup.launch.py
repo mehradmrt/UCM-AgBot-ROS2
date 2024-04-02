@@ -12,11 +12,9 @@ from launch_ros.actions import PushRosNamespace
 
 
 def generate_launch_description():
-    # Get the launch directory
     bringup_dir = get_package_share_directory('nav2_bringup')
     launch_dir = os.path.join(bringup_dir, 'launch')
 
-    # Create the launch configuration variables
     namespace = LaunchConfiguration('namespace')
     use_namespace = LaunchConfiguration('use_namespace')
     slam = LaunchConfiguration('slam')
@@ -118,13 +116,10 @@ def generate_launch_description():
                               'map_subscribe_transient_local': 'true'}.items()),
     ])
 
-    # Create the launch description and populate
     ld = LaunchDescription()
 
-    # Set environment variables
     ld.add_action(stdout_linebuf_envvar)
 
-    # Declare the launch options
     ld.add_action(declare_namespace_cmd)
     ld.add_action(declare_use_namespace_cmd)
     ld.add_action(declare_slam_cmd)
@@ -134,7 +129,6 @@ def generate_launch_description():
     ld.add_action(declare_autostart_cmd)
     ld.add_action(declare_bt_xml_cmd)
 
-    # Add the actions to launch all of the navigation nodes
     ld.add_action(simulation_launch)
     ld.add_action(bringup_cmd_group)
     ld.add_action(rviz_cmd)

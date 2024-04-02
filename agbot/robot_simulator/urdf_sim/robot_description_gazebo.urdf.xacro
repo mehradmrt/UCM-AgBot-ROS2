@@ -24,7 +24,7 @@
   <xacro:property name="imu_width" value="0.02"/>
   <xacro:property name="imu_height" value="0.007"/>
 
-  <!-- Define some commonly used intertial properties  -->
+  <!-- intertial properties  -->
   <xacro:macro name="box_inertia" params="m w h d">
     <inertial>
       <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>      
@@ -160,13 +160,13 @@
     </joint>
   </xacro:macro>
 
-  <!-- Create left and right wheel_boxes -->
+  <!-- create left and right wheel_boxes -->
   <xacro:wheel_box name="left_wheel" y="${base_width/2 - wheel_width/2 + 0.001}"/>
   <xacro:wheel_box name="right_wheel" y="${-base_width/2 + wheel_width/2 -0.001}" />
 
 
 
-  <!-- Create additional front left and right wheel_box_cylinders -->
+  <!-- additional front left and right wheel_box_cylinders -->
   <xacro:macro name="additional_f_wheel" params="name">
     <link name="${name}_additional_f_wheel_link">
         <visual>

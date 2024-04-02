@@ -11,11 +11,9 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    # Get the launch directory
     bringup_dir = get_package_share_directory('nav2_bringup')
     launch_dir = os.path.join(bringup_dir, 'launch')
 
-    # Create the launch configuration variables
     slam = LaunchConfiguration('slam')
     namespace = LaunchConfiguration('namespace')
     use_namespace = LaunchConfiguration('use_namespace')
@@ -26,7 +24,6 @@ def generate_launch_description():
     use_composition = LaunchConfiguration('use_composition')
     use_respawn = LaunchConfiguration('use_respawn')
 
-    # Launch configuration variables specific to simulation
     rviz_config_file = LaunchConfiguration('rviz_config_file')
     use_simulator = LaunchConfiguration('use_simulator')
     use_robot_state_pub = LaunchConfiguration('use_robot_state_pub')
@@ -140,7 +137,6 @@ def generate_launch_description():
         default_value=os.path.join(get_package_share_directory('robot_simulator'), 'models','my_robot', 'my_robot.sdf'),
         description='Full path to robot sdf file to spawn the robot in gazebo')
 
-    # Specify the actions
     start_gazebo_server_cmd = ExecuteProcess(
         condition=IfCondition(use_simulator),
         cmd=['gzserver', '-s', 'libgazebo_ros_init.so',
@@ -210,10 +206,8 @@ def generate_launch_description():
     os.path.join(get_package_share_directory('robot_simulator'),'launch','simulation.launch.py')
     )
 
-    # Create the launch description and populate
     ld = LaunchDescription()
 
-    # Declare the launch options
     ld.add_action(declare_namespace_cmd)
     ld.add_action(declare_use_namespace_cmd)
     ld.add_action(declare_slam_cmd)
@@ -233,13 +227,11 @@ def generate_launch_description():
     ld.add_action(declare_robot_sdf_cmd)
     ld.add_action(declare_use_respawn_cmd)
 
-    # Add any conditioned actions
     ld.add_action(start_gazebo_server_cmd)
     ld.add_action(start_gazebo_client_cmd)
     ld.add_action(start_gazebo_spawner_cmd)
     # ld.add_action(local_sim_launch)
 
-    # Add the actions to launch all of the navigation nodes
     ld.add_action(start_robot_state_publisher_cmd)
     ld.add_action(rviz_cmd)
     ld.add_action(bringup_cmd)

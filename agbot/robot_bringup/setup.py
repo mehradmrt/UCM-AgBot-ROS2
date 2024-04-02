@@ -23,7 +23,7 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='MehradMortazavi',
+    maintainer='Mehrad Mortazavi',
     maintainer_email='smortazavi3@ucmerced.edu',
     description='Robot description and bringup',
     license='Apache License 2.0',

@@ -3,9 +3,9 @@
 <package format="3">
   <name>rtk_gnss</name>
   <version>1.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="smortazavi3@ucmerced.edu">MM</maintainer>
-  <license>TODO: License declaration</license>
+  <description>ROS2 driver for Emlid RTK-GNSS system</description>
+  <maintainer email="smortazavi3@ucmerced.com">Mehrad Mortazavi</maintainer>
+  <license>Apache License 2.0</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

@@ -8,7 +8,6 @@ from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
-    # Get the launch directory
     # bringup_dir = get_package_share_directory('nav2_bringup')
     bringup_local = get_package_share_directory('robot_simulator')
     ekf_config_path = os.path.join(bringup_local,'config','ekf.yaml')
@@ -29,7 +28,6 @@ def generate_launch_description():
     remappings = [('/tf', 'tf'),
                   ('/tf_static', 'tf_static')]
 
-    # Create our own temporary YAML files that include substitutions
     param_substitutions = {
         'use_sim_time': use_sim_time,
         'yaml_filename': map_yaml_file}
@@ -41,7 +39,6 @@ def generate_launch_description():
         convert_types=True)
 
     return LaunchDescription([
-        # Set env var to print messages to stdout immediately
         SetEnvironmentVariable('RCUTILS_LOGGING_BUFFERED_STREAM', '1'),
 
         DeclareLaunchArgument(

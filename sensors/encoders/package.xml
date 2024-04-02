@@ -3,9 +3,9 @@
 <package format="3">
   <name>encoders</name>
   <version>0.0.0</version>
-  <description>Wheel encoders data publisher</description>
-  <maintainer email="smortazavi3@ucmerced.edu">MM</maintainer>
-  <license>Apache 2.0</license>
+  <description>Driver for wheel encoders</description>
+  <maintainer email="smortazavi3@ucmerced.com">Mehrad Mortazavi</maintainer>
+  <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

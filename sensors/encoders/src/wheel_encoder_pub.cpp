@@ -33,7 +33,6 @@ private:
         {}
     };
 
-    // Member variables
     rclcpp::Publisher<custom_interfaces::msg::WheelEncoders>::SharedPtr publisher_;
     boost::asio::io_service io_service_;
     EncoderPort port_LW_, port_RW_;
@@ -41,7 +40,6 @@ private:
     double left_value = 0.0;
     double right_value = 0.0;
 
-    // Method to initialize a given port
     void initialize_port(EncoderPort& encoder_port)
     {
         encoder_port.port.open(encoder_port.port_name);

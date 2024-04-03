@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+import time
 from custom_interfaces.srv import GetSpectrum  
 import threading
 import serial
@@ -8,12 +9,12 @@ from nanospec.NanoLambdaNSP32 import *
 class SpectrumService(Node):
     def __init__(self):
         super().__init__('NSP32_service_node')
+        self.wavelengths = []
+        self.spectrum = []
         self.ser = serial.Serial('/dev/nanospec', baudrate=115200, bytesize=serial.EIGHTBITS, 
                                  parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE)
         self.nsp32 = NSP32(self.data_channel_send_data, self.on_return_packet_received)
         self.srv = self.create_service(GetSpectrum, 'get_spectrum', self.get_spectrum_callback)
-        self.wavelengths = []
-        self.spectrum = []
         thread = threading.Thread(target=self.serial_port_receive, args=(self.ser, self.nsp32))
         thread.daemon = True
         thread.start()
@@ -24,6 +25,7 @@ class SpectrumService(Node):
         self.nsp32.GetWavelength(0)
         self.nsp32.AcqSpectrum(0, 32, 3, False)
 
+        time.sleep(0.5)
         response.wavelengths = self.wavelengths
         response.spectrum = self.spectrum
         return response
@@ -44,7 +46,7 @@ class SpectrumService(Node):
             infoW = pkt.ExtractWavelengthInfo()
             self.wavelengths = list(infoW.Wavelength) 
             self.get_logger().info(f'Wavelengths received.')
-            # self.get_logger().info(f'Wavelengths received. Type: {type(infoW.Wavelength)}')
+            # self.get_logger().info(f'Wavelengths received. Type: {(infoW.Wavelength)}')
         elif pkt.CmdCode == CmdCodeEnum.GetSpectrum:
             infoS = pkt.ExtractSpectrumInfo()
             self.spectrum = list(infoS.Spectrum) 

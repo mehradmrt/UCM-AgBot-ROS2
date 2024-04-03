@@ -95,7 +95,7 @@ def OnReturnPacketReceived(pkt):
 		print('sensor id = ' + pkt.ExtractSensorIdStr())
 	elif pkt.CmdCode == CmdCodeEnum.GetWavelength :	# GetWavelength
 		infoW = pkt.ExtractWavelengthInfo()
-		print('first element of wavelength =', infoW.Wavelength)
+		print('first element of wavelength =', list(infoW.Wavelength))
 		# TODO: get more information you need from infoW
 	elif pkt.CmdCode == CmdCodeEnum.GetSpectrum :	# GetSpectrum
 		infoS = pkt.ExtractSpectrumInfo()

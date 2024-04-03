@@ -22,7 +22,11 @@ find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 # interface generator
-rosidl_generate_interfaces(${PROJECT_NAME} "msg/WheelEncoders.msg" DEPENDENCIES std_msgs)
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/WheelEncoders.msg"
+  "srv/GetSpectrum.srv"
+  DEPENDENCIES std_msgs
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

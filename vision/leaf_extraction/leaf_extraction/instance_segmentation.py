@@ -65,7 +65,7 @@ class ImageProcessor(Node):
         self.publish_pose_array()
         print(self.locations)
 
-        self.plot_masked_points()
+        # self.plot_masked_points()
         self.plotting_o3d()
 
         self.processed = True
@@ -118,7 +118,8 @@ class ImageProcessor(Node):
             try:
                 mask_boolean = mask.astype(bool)
                 masked_points = xyz_reshaped[mask_boolean]
-                filtered_masked_points = self.filter_outliers_dbscan(masked_points)
+                # filtered_masked_points = self.filter_outliers_dbscan(masked_points)
+                filtered_masked_points = masked_points
                 depth_filtered_points = self.filter_points_by_depth(filtered_masked_points)
                 masks_xyzs.append(depth_filtered_points)
             except Exception as e:
@@ -164,7 +165,7 @@ class ImageProcessor(Node):
             pca.fit(points) 
             normal_vector = pca.components_[-1]
 
-            if normal_vector[1] > 0:
+            if normal_vector[2] > 0:
                 normal_vector = -normal_vector
             
             vectors.append(normal_vector)
@@ -216,8 +217,11 @@ class ImageProcessor(Node):
     def transform_axes_and_calculate_rotation(self):
         transformed_elements = []
         for i, axis_set in enumerate(self.axes):
+            ''' if sent to the gripper directly '''
+
             position = self.midpoints[i]
-            transformed_p=( np.array([17.5, 124.33, -195.62])*0.001+  ### the vector that connects RG2 to camera
+            transformed_p=( 
+                            np.array([17.5, 124.33, -195.62])*0.001+  ### the vector that connects RG2 to camera
                             np.array([0.0, 0.0, -15.0])*0.001+ ### the gap between the new printed fingers and the old ones  
                             np.array([-position[0], -position[1], position[2]])
                             # np.array([0, 0, 230.0]) ### subtract the flange to endeffector vector for Moveit 
@@ -229,13 +233,21 @@ class ImageProcessor(Node):
                                          [-axis2[0], -axis2[1], axis2[2]],
                                          [-axis3[0], -axis3[1], axis3[2]]])
 
-            # rotmat = R.from_matrix(transformed_axes).inv()
-            # rotation_as_euler = rotmat.as_euler('xyz',degrees=True)
-            # transformed_elements.append(np.concatenate([transformed_p, rotation_as_euler]))
-
             rotmat = R.from_matrix(transformed_axes).inv()
-            rotation_as_euler = rotmat.as_quat()
-            transformed_elements.append(np.concatenate([transformed_p, rotation_as_euler]))
+            rotation_as_quat = rotmat.as_quat()
+            transformed_elements.append(np.concatenate([transformed_p, rotation_as_quat]))
+
+            ''' if sent to the "camera_depth_optical_frame" directly '''
+            # position = self.midpoints[i]
+            # transformed_p=(np.array([position[0], position[1], position[2]])) 
+            # axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
+
+            # transformed_axes = np.array([[axis1[0], axis1[1], axis1[2]],
+            #                              [axis2[0], axis2[1], axis2[2]],
+            #                              [axis3[0], axis3[1], axis3[2]]])
+            # rotmat = R.from_matrix(transformed_axes).inv()
+            # rotation_as_quat = rotmat.as_quat()
+            # transformed_elements.append(np.concatenate([transformed_p, rotation_as_quat]))
 
         return np.array(transformed_elements)
 
@@ -283,30 +295,76 @@ class ImageProcessor(Node):
         ax.view_init(elev=10, azim=270)
         plt.show()
 
+    # def plotting_o3d(self):
+    #     cloud = o3d.geometry.PointCloud()
+    #     cloud.points = o3d.utility.Vector3dVector(self.points)
+    #     # cloud.colors = o3d.utility.Vector3dVector(self.colors / 255.0) 
+
+    #     xyz_reshaped = self.points.reshape((self.height, self.width, 3))
+    #     filtered_xyz = xyz_reshaped[self.combined_masks.astype(bool)]
+    #     filtered_cloud = o3d.geometry.PointCloud()
+    #     filtered_cloud.points = o3d.utility.Vector3dVector(filtered_xyz)
+    #     filtered_cloud.paint_uniform_color([0, 0, 0]) 
+
+    #     coordinate_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0,0,0])
+    #     vis = o3d.visualization.Visualizer()
+    #     vis.create_window()
+    #     vis.add_geometry(cloud)
+    #     vis.add_geometry(filtered_cloud)
+    #     vis.add_geometry(coordinate_frame)
+    #     vis.run()
+    #     vis.destroy_window()
+        
     def plotting_o3d(self):
         cloud = o3d.geometry.PointCloud()
         cloud.points = o3d.utility.Vector3dVector(self.points)
-        # cloud.colors = o3d.utility.Vector3dVector(self.colors / 255.0) 
+        cloud.colors = o3d.utility.Vector3dVector(self.colors / 255.0)
 
         xyz_reshaped = self.points.reshape((self.height, self.width, 3))
         filtered_xyz = xyz_reshaped[self.combined_masks.astype(bool)]
         filtered_cloud = o3d.geometry.PointCloud()
         filtered_cloud.points = o3d.utility.Vector3dVector(filtered_xyz)
-        filtered_cloud.paint_uniform_color([0, 0, 0]) 
+        filtered_cloud.paint_uniform_color([0, 1, 0])
 
         coordinate_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0,0,0])
+
         vis = o3d.visualization.Visualizer()
         vis.create_window()
         vis.add_geometry(cloud)
-        vis.add_geometry(filtered_cloud)
+        # vis.add_geometry(filtered_cloud)
         vis.add_geometry(coordinate_frame)
+
+        num_masks = min(len(self.masks_xyzs), self.top_n)
+
+        for i in range(num_masks):
+            points = self.masks_xyzs[i]
+            if points.size == 0 or self.midpoints[i] is None:
+                continue
+
+            central_point = self.midpoints[i]
+            midpoint_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=0.005)
+            midpoint_sphere.translate(central_point)
+            midpoint_sphere.paint_uniform_color([1, 0, 0])
+            vis.add_geometry(midpoint_sphere)
+
+            for axis_index, axis_color in enumerate([[1, 0, 0], [0, 1, 0], [0, 0, 1]]):  
+                axis_vector = self.axes[i][axis_index] * 0.1  
+                axis_line = o3d.geometry.LineSet()
+                points = [central_point, central_point + axis_vector]
+                lines = [[0, 1]]
+                colors = [axis_color]  
+                axis_line.points = o3d.utility.Vector3dVector(points)
+                axis_line.lines = o3d.utility.Vector2iVector(lines)
+                axis_line.colors = o3d.utility.Vector3dVector(colors)
+                vis.add_geometry(axis_line)
+
         vis.run()
         vis.destroy_window()
 
 def main(args=None):
     rclpy.init(args=args)
     image_processor_node = ImageProcessor()
-    rclpy.spin(image_processor_node)
+    rclpy.spin_once(image_processor_node)
     image_processor_node.destroy_node()
     rclpy.shutdown()
 

@@ -12,6 +12,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import Pose, PoseArray
+from custom_interfaces.msg import LeafPoseArrays
 from cv_bridge import CvBridge
 from ultralytics import YOLO
 from sklearn.cluster import DBSCAN
@@ -25,6 +26,9 @@ class ImageProcessor(Node):
         
         self.pose_array_publisher = self.create_publisher(PoseArray,'/target_leaves',
                                         QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
+        
+        self.multi_pose_array_publisher = self.create_publisher(LeafPoseArrays,'/target_leaves_multi_pose',
+                                QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         
         self.bridge = CvBridge()
         self.model = YOLO('/home/arya/instance_segmentation/best.pt')
@@ -61,9 +65,10 @@ class ImageProcessor(Node):
         self.midpoints = self.extract_midpoints()
         self.normal_vectors = self.fit_plane_and_find_normal()
         self.axes = self.axes_for_masks()
-        self.locations = self.transform_axes_and_calculate_rotation()
+        # self.Poses1 = self.transform_axes_and_calculate_rotation()
+        self.Poses1, self.Poses2, self.Poses3, self.Poses4, self.Poses5 = self.calculate_multiple_poses()
         self.publish_pose_array()
-        print(self.locations)
+        # print(self.Poses1)
 
         # self.plot_masked_points()
         self.plotting_o3d()
@@ -250,11 +255,51 @@ class ImageProcessor(Node):
             # transformed_elements.append(np.concatenate([transformed_p, rotation_as_quat]))
 
         return np.array(transformed_elements)
+    
+    def calculate_multiple_poses(self):
+        Poses1, Poses2, Poses3, Poses4, Poses5 = [], [], [], []
+        
+        for i, axis_set in enumerate(self.axes):
+            position = self.midpoints[i]
+            transformed_p=( 
+                            np.array([17.5, 124.33, -195.62])*0.001+  ### the vector that connects RG2 to camera
+                            np.array([0.0, 0.0, -15.0])*0.001+ ### the gap between the new printed fingers and the old ones  
+                            np.array([-position[0], -position[1], position[2]])
+                            # np.array([0, 0, 230.0]) ### subtract the flange to endeffector vector for Moveit 
+                            )
+            
+            axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
+            transformed_axes = np.array([[-axis1[0], -axis1[1], axis1[2]],
+                                         [-axis2[0], -axis2[1], axis2[2]],
+                                         [-axis3[0], -axis3[1], axis3[2]]])
+            
+            rotation_as_quat1 = self.transform_rotated_matrices(transformed_axes, 0)
+            rotation_as_quat2 = self.transform_rotated_matrices(transformed_axes, -45)
+            rotation_as_quat3 = self.transform_rotated_matrices(transformed_axes, -90)
+            rotation_as_quat4 = self.transform_rotated_matrices(transformed_axes, -135)
+            rotation_as_quat5 = self.transform_rotated_matrices(transformed_axes, -180)
+
+            Poses1.append(np.concatenate([transformed_p,rotation_as_quat1]))
+            Poses2.append(np.concatenate([transformed_p,rotation_as_quat2]))
+            Poses3.append(np.concatenate([transformed_p,rotation_as_quat3]))
+            Poses4.append(np.concatenate([transformed_p,rotation_as_quat4]))
+            Poses5.append(np.concatenate([transformed_p,rotation_as_quat5]))
+
+        return np.array(Poses1), np.array(Poses2), np.array(Poses3), np.array(Poses4), np.array(Poses5)
+    
+
+    def transform_rotated_matrices(transformed_axes, angle):
+        rotobj = R.from_euler('x', angle, degrees=True)
+        rotated_axes = rotobj.apply(transformed_axes)
+        rotmat = R.from_matrix(rotated_axes).inv()
+        rotation_as_quat = rotmat.as_quat()
+
+        return rotation_as_quat
 
     def publish_pose_array(self):
         pose_array_msg = PoseArray()
 
-        for transformed_element in self.locations:
+        for transformed_element in self.Poses1:
             pose_msg = Pose()
             pose_msg.position.x = transformed_element[0]
             pose_msg.position.y = transformed_element[1]
@@ -267,6 +312,33 @@ class ImageProcessor(Node):
             pose_array_msg.poses.append(pose_msg)
 
         self.pose_array_publisher.publish(pose_array_msg)
+
+    def publish_leaf_pose_arrays(self):
+        leaf_pose_arrays_msg = LeafPoseArrays()
+        leaf_pose_arrays_msg.header.stamp = self.get_clock().now()
+        leaf_pose_arrays_msg.header.frame_id = "gripper"
+
+        def create_pose_array(poses):
+            pose_array = PoseArray()
+            for pose in poses:
+                pose_msg = Pose()
+                pose_msg.position.x = pose[0]
+                pose_msg.position.y = pose[1]
+                pose_msg.position.z = pose[2]
+                pose_msg.orientation.x = pose[3]
+                pose_msg.orientation.y = pose[4]
+                pose_msg.orientation.z = pose[5]
+                pose_msg.orientation.w = pose[6]
+                pose_array.poses.append(pose_msg)
+            return pose_array
+
+        leaf_pose_arrays_msg.Poses1.append(create_pose_array(self.Poses1))
+        leaf_pose_arrays_msg.Poses2.append(create_pose_array(self.Poses2))
+        leaf_pose_arrays_msg.Poses3.append(create_pose_array(self.Poses3))
+        leaf_pose_arrays_msg.Poses4.append(create_pose_array(self.Poses4))
+        leaf_pose_arrays_msg.Poses5.append(create_pose_array(self.Poses5))
+
+        self.multi_pose_array_publisher.publish(leaf_pose_arrays_msg)
 
     def plot_masked_points(self):
         num_masks = min(len(self.masks_xyzs), self.top_n)
@@ -294,26 +366,6 @@ class ImageProcessor(Node):
         ax.set_zlabel('Z')
         ax.view_init(elev=10, azim=270)
         plt.show()
-
-    # def plotting_o3d(self):
-    #     cloud = o3d.geometry.PointCloud()
-    #     cloud.points = o3d.utility.Vector3dVector(self.points)
-    #     # cloud.colors = o3d.utility.Vector3dVector(self.colors / 255.0) 
-
-    #     xyz_reshaped = self.points.reshape((self.height, self.width, 3))
-    #     filtered_xyz = xyz_reshaped[self.combined_masks.astype(bool)]
-    #     filtered_cloud = o3d.geometry.PointCloud()
-    #     filtered_cloud.points = o3d.utility.Vector3dVector(filtered_xyz)
-    #     filtered_cloud.paint_uniform_color([0, 0, 0]) 
-
-    #     coordinate_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0,0,0])
-    #     vis = o3d.visualization.Visualizer()
-    #     vis.create_window()
-    #     vis.add_geometry(cloud)
-    #     vis.add_geometry(filtered_cloud)
-    #     vis.add_geometry(coordinate_frame)
-    #     vis.run()
-    #     vis.destroy_window()
         
     def plotting_o3d(self):
         cloud = o3d.geometry.PointCloud()

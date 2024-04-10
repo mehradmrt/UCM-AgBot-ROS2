@@ -65,10 +65,13 @@ class ImageProcessor(Node):
         self.midpoints = self.extract_midpoints()
         self.normal_vectors = self.fit_plane_and_find_normal()
         self.axes = self.axes_for_masks()
-        # self.Poses1 = self.transform_axes_and_calculate_rotation()
+        # self.Poses1_solo = self.transform_axes_and_calculate_rotation()
+        # self.publish_pose_array()
+        # print(self.Poses1_solo)
         self.Poses1, self.Poses2, self.Poses3, self.Poses4, self.Poses5 = self.calculate_multiple_poses()
-        self.publish_pose_array()
-        # print(self.Poses1)
+        self.publish_leaf_pose_arrays()
+        print(self.Poses1)
+        
 
         # self.plot_masked_points()
         self.plotting_o3d()
@@ -257,7 +260,7 @@ class ImageProcessor(Node):
         return np.array(transformed_elements)
     
     def calculate_multiple_poses(self):
-        Poses1, Poses2, Poses3, Poses4, Poses5 = [], [], [], []
+        Poses1, Poses2, Poses3, Poses4, Poses5 = [], [], [], [], []
         
         for i, axis_set in enumerate(self.axes):
             position = self.midpoints[i]
@@ -288,7 +291,7 @@ class ImageProcessor(Node):
         return np.array(Poses1), np.array(Poses2), np.array(Poses3), np.array(Poses4), np.array(Poses5)
     
 
-    def transform_rotated_matrices(transformed_axes, angle):
+    def transform_rotated_matrices(self, transformed_axes, angle):
         rotobj = R.from_euler('x', angle, degrees=True)
         rotated_axes = rotobj.apply(transformed_axes)
         rotmat = R.from_matrix(rotated_axes).inv()
@@ -299,7 +302,7 @@ class ImageProcessor(Node):
     def publish_pose_array(self):
         pose_array_msg = PoseArray()
 
-        for transformed_element in self.Poses1:
+        for transformed_element in self.Poses1_solo:
             pose_msg = Pose()
             pose_msg.position.x = transformed_element[0]
             pose_msg.position.y = transformed_element[1]
@@ -315,7 +318,7 @@ class ImageProcessor(Node):
 
     def publish_leaf_pose_arrays(self):
         leaf_pose_arrays_msg = LeafPoseArrays()
-        leaf_pose_arrays_msg.header.stamp = self.get_clock().now()
+        leaf_pose_arrays_msg.header.stamp = self.get_clock().now().to_msg()
         leaf_pose_arrays_msg.header.frame_id = "gripper"
 
         def create_pose_array(poses):
@@ -332,11 +335,11 @@ class ImageProcessor(Node):
                 pose_array.poses.append(pose_msg)
             return pose_array
 
-        leaf_pose_arrays_msg.Poses1.append(create_pose_array(self.Poses1))
-        leaf_pose_arrays_msg.Poses2.append(create_pose_array(self.Poses2))
-        leaf_pose_arrays_msg.Poses3.append(create_pose_array(self.Poses3))
-        leaf_pose_arrays_msg.Poses4.append(create_pose_array(self.Poses4))
-        leaf_pose_arrays_msg.Poses5.append(create_pose_array(self.Poses5))
+        leaf_pose_arrays_msg.poses1.append(create_pose_array(self.Poses1))
+        leaf_pose_arrays_msg.poses2.append(create_pose_array(self.Poses2))
+        leaf_pose_arrays_msg.poses3.append(create_pose_array(self.Poses3))
+        leaf_pose_arrays_msg.poses4.append(create_pose_array(self.Poses4))
+        leaf_pose_arrays_msg.poses5.append(create_pose_array(self.Poses5))
 
         self.multi_pose_array_publisher.publish(leaf_pose_arrays_msg)
 

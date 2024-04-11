@@ -3,9 +3,8 @@
 # 45 degrees CC rotation around the normal vector of the targets calculated in Poses1)
 
 std_msgs/Header header
-geometry_msgs/PoseArray[] poses1
-geometry_msgs/PoseArray[] poses2
-geometry_msgs/PoseArray[] poses3
-geometry_msgs/PoseArray[] poses4
-geometry_msgs/PoseArray[] poses5
-
+geometry_msgs/Pose[] poses1
+geometry_msgs/Pose[] poses2
+geometry_msgs/Pose[] poses3
+geometry_msgs/Pose[] poses4
+geometry_msgs/Pose[] poses5

@@ -23,10 +23,10 @@ class ImageProcessor(Node):
         super().__init__('instance_segmentation')
         self.point_cloud_subscription = self.create_subscription(
             PointCloud2, '/camera/depth/color/points', self.point_cloud_callback, 10)
-        
+
         self.pose_array_publisher = self.create_publisher(PoseArray,'/target_leaves',
                                         QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
-        
+
         self.multi_pose_array_publisher = self.create_publisher(LeafPoseArrays,'/target_leaves_multi_pose',
                                 QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         
@@ -102,7 +102,7 @@ class ImageProcessor(Node):
         image = Image.fromarray(image_array, 'RGB')
 
         open_cv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-        cv2.imwrite("/home/arya/AgBot_reps/UCM-AgBot-ROS2/src/vision/leaf_extraction/segmentation_model/pc_rgb.jpg", open_cv_image)
+        cv2.imwrite("../UCM-AgBot-ROS2/src/vision/leaf_extraction/segmentation_model/pc_rgb.jpg", open_cv_image)
         results = self.model([open_cv_image], imgsz=self.width, save=True, conf=self.conf_cutoff)
 
         combined_masks = np.zeros((self.height, self.width), dtype=np.uint8)
@@ -321,8 +321,8 @@ class ImageProcessor(Node):
         leaf_pose_arrays_msg.header.stamp = self.get_clock().now().to_msg()
         leaf_pose_arrays_msg.header.frame_id = "gripper"
 
-        def create_pose_array(poses):
-            pose_array = PoseArray()
+        def create_poses(poses):
+            pose_msgs = []
             for pose in poses:
                 pose_msg = Pose()
                 pose_msg.position.x = pose[0]
@@ -332,14 +332,14 @@ class ImageProcessor(Node):
                 pose_msg.orientation.y = pose[4]
                 pose_msg.orientation.z = pose[5]
                 pose_msg.orientation.w = pose[6]
-                pose_array.poses.append(pose_msg)
-            return pose_array
+                pose_msgs.append(pose_msg)
+            return pose_msgs
 
-        leaf_pose_arrays_msg.poses1.append(create_pose_array(self.Poses1))
-        leaf_pose_arrays_msg.poses2.append(create_pose_array(self.Poses2))
-        leaf_pose_arrays_msg.poses3.append(create_pose_array(self.Poses3))
-        leaf_pose_arrays_msg.poses4.append(create_pose_array(self.Poses4))
-        leaf_pose_arrays_msg.poses5.append(create_pose_array(self.Poses5))
+        leaf_pose_arrays_msg.poses1 = create_poses(self.Poses1)
+        leaf_pose_arrays_msg.poses2 = create_poses(self.Poses2)
+        leaf_pose_arrays_msg.poses3 = create_poses(self.Poses3)
+        leaf_pose_arrays_msg.poses4 = create_poses(self.Poses4)
+        leaf_pose_arrays_msg.poses5 = create_poses(self.Poses5)
 
         self.multi_pose_array_publisher.publish(leaf_pose_arrays_msg)
 

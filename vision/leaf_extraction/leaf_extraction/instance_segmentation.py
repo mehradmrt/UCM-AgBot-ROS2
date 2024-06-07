@@ -31,7 +31,8 @@ class ImageProcessor(Node):
                                 QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         
         self.bridge = CvBridge()
-        self.model = YOLO('/home/arya/instance_segmentation/best.pt')
+        # self.model = YOLO('/home/arya/instance_segmentation/best.pt')
+        self.model = YOLO('/home/arya/instance_segmentation/magnolia_model/best_yolov8x_seg.pt')
         self.conf_cutoff = 0.7
 
         self.colors = None
@@ -49,7 +50,7 @@ class ImageProcessor(Node):
         self.normal_vectors = None
         self.axes = None
 
-        self.top_n = 10
+        self.top_n = 15
         self.dbscan_eps = 0.01
         self.dbscan_ms = 10
 
@@ -67,13 +68,12 @@ class ImageProcessor(Node):
         self.axes = self.axes_for_masks()
         # self.Poses1_solo = self.transform_axes_and_calculate_rotation()
         # self.publish_pose_array()
-        # print(self.Poses1_solo)
+        # print(self.Poses1_solo) 
         self.Poses1, self.Poses2, self.Poses3, self.Poses4, self.Poses5 = self.calculate_multiple_poses()
         self.publish_leaf_pose_arrays()
         print(self.Poses1)
-        
 
-        # self.plot_masked_points()
+        self.plot_masked_points()
         self.plotting_o3d()
 
         self.processed = True
@@ -110,8 +110,15 @@ class ImageProcessor(Node):
 
         for result in results:
             confs = result.boxes.conf.numpy()
-            for i in range(result.__len__()):  
-                mask_i = result.masks.masks[i].numpy()
+            for i in range(result.__len__()):
+
+                yolo_hight, yolo_width = result.masks[i].shape[1], result.masks[i].shape[2]
+                mask_i = np.zeros((yolo_hight, yolo_width), dtype=np.uint8)  
+
+                mask_i_coords = result.masks.xy[i]
+                mask_i_coords = mask_i_coords.astype(np.int32)
+                cv2.fillPoly(mask_i, [mask_i_coords], 1)
+
                 resized_mask = cv2.resize(mask_i, (self.width, self.height), interpolation=cv2.INTER_NEAREST)
                 ordered_masks.append(resized_mask)
                 combined_masks = np.logical_or(combined_masks, resized_mask).astype(np.uint8)
@@ -126,8 +133,8 @@ class ImageProcessor(Node):
             try:
                 mask_boolean = mask.astype(bool)
                 masked_points = xyz_reshaped[mask_boolean]
-                # filtered_masked_points = self.filter_outliers_dbscan(masked_points)
-                filtered_masked_points = masked_points
+                filtered_masked_points = self.filter_outliers_dbscan(masked_points)
+                # filtered_masked_points = masked_points
                 depth_filtered_points = self.filter_points_by_depth(filtered_masked_points)
                 masks_xyzs.append(depth_filtered_points)
             except Exception as e:
@@ -237,11 +244,11 @@ class ImageProcessor(Node):
             
             axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
 
-            transformed_axes = np.array([[-axis1[0], -axis1[1], axis1[2]],
-                                         [-axis2[0], -axis2[1], axis2[2]],
-                                         [-axis3[0], -axis3[1], axis3[2]]])
+            transformed_axes = np.array([[-axis1[0], -axis1[1], -axis1[2]],
+                                         [-axis2[0], -axis2[1], -axis2[2]],
+                                         [axis3[0], axis3[1], axis3[2]]])
 
-            rotmat = R.from_matrix(transformed_axes).inv()
+            rotmat = R.from_matrix(transformed_axes)
             rotation_as_quat = rotmat.as_quat()
             transformed_elements.append(np.concatenate([transformed_p, rotation_as_quat]))
 
@@ -269,18 +276,21 @@ class ImageProcessor(Node):
                             np.array([0.0, 0.0, -15.0])*0.001+ ### the gap between the new printed fingers and the old ones  
                             np.array([-position[0], -position[1], position[2]])
                             # np.array([0, 0, 230.0]) ### subtract the flange to endeffector vector for Moveit 
-                            )
+                            ) # in {RG2} frame meaning x and y components need to be multiplied by -1
             
             axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
-            transformed_axes = np.array([[-axis1[0], -axis1[1], axis1[2]],
-                                         [-axis2[0], -axis2[1], axis2[2]],
-                                         [-axis3[0], -axis3[1], axis3[2]]])
+            ax =  np.array([[axis1[0], axis1[1], axis1[2]],
+                            [axis2[0], axis2[1], axis2[2]],
+                            [axis3[0], axis3[1], axis3[2]]])
+            # transformed_axes = np.array([[-axis1[0], -axis1[1], axis1[2]],
+            #                              [-axis2[0], -axis2[1], axis2[2]],
+            #                              [-axis3[0], -axis3[1], axis3[2]]])
             
-            rotation_as_quat1 = self.transform_rotated_matrices(transformed_axes, 0)
-            rotation_as_quat2 = self.transform_rotated_matrices(transformed_axes, -45)
-            rotation_as_quat3 = self.transform_rotated_matrices(transformed_axes, -90)
-            rotation_as_quat4 = self.transform_rotated_matrices(transformed_axes, -135)
-            rotation_as_quat5 = self.transform_rotated_matrices(transformed_axes, -180)
+            rotation_as_quat1 = self.transform_rotated_matrices(ax, 0)
+            rotation_as_quat2 = self.transform_rotated_matrices(ax, -45)
+            rotation_as_quat3 = self.transform_rotated_matrices(ax, -90)
+            rotation_as_quat4 = self.transform_rotated_matrices(ax, -135)
+            rotation_as_quat5 = self.transform_rotated_matrices(ax, -180)
 
             Poses1.append(np.concatenate([transformed_p,rotation_as_quat1]))
             Poses2.append(np.concatenate([transformed_p,rotation_as_quat2]))
@@ -291,13 +301,20 @@ class ImageProcessor(Node):
         return np.array(Poses1), np.array(Poses2), np.array(Poses3), np.array(Poses4), np.array(Poses5)
     
 
-    def transform_rotated_matrices(self, transformed_axes, angle):
-        rotobj = R.from_euler('x', angle, degrees=True)
-        rotated_axes = rotobj.apply(transformed_axes)
-        rotmat = R.from_matrix(rotated_axes).inv()
-        rotation_as_quat = rotmat.as_quat()
+    def transform_rotated_matrices(self, ax, angle):
 
-        return rotation_as_quat
+        rotobj = R.from_euler('x', angle, degrees=True)
+        rotated_axes = rotobj.apply(ax)
+
+        axis1, axis2, axis3 = rotated_axes[0], rotated_axes[1], rotated_axes[2]
+        transformed_axes = np.array([[-axis1[0], -axis1[1], -axis1[2]],
+                                     [-axis2[0], -axis2[1], -axis2[2]],
+                                     [axis3[0], axis3[1], axis3[2]]])
+        
+        orientmat = R.from_matrix(transformed_axes)
+        orientation_as_quat = orientmat.as_quat()
+
+        return orientation_as_quat
 
     def publish_pose_array(self):
         pose_array_msg = PoseArray()
@@ -358,11 +375,11 @@ class ImageProcessor(Node):
             ax.scatter(points[:, 0], points[:, 1], points[:, 2], color=colors(i), s=1)
             ax.scatter(central_point[0], central_point[1], central_point[2], color='black', s=60)
 
-            for axis_index, axis_color in enumerate(['black', 'green', 'blue']):  # X, Y, Z axes
-                axis_vector = self.axes[i][axis_index]
-                ax.quiver(central_point[0], central_point[1], central_point[2], 
-                        axis_vector[0], axis_vector[1], axis_vector[2], 
-                        length=0.1, color=axis_color, normalize=True)
+            # for axis_index, axis_color in enumerate(['black', 'green', 'blue']):  # X, Y, Z axes
+            #     axis_vector = self.axes[i][axis_index]
+            #     ax.quiver(central_point[0], central_point[1], central_point[2], 
+            #             axis_vector[0], axis_vector[1], axis_vector[2], 
+            #             length=0.1, color=axis_color, normalize=True)
 
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
@@ -386,7 +403,7 @@ class ImageProcessor(Node):
         vis = o3d.visualization.Visualizer()
         vis.create_window()
         vis.add_geometry(cloud)
-        # vis.add_geometry(filtered_cloud)
+        vis.add_geometry(filtered_cloud)
         vis.add_geometry(coordinate_frame)
 
         num_masks = min(len(self.masks_xyzs), self.top_n)

@@ -6,6 +6,10 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.spatial.transform import Rotation as R
+from scipy.stats import norm as normalized
+import time
+from sklearn.neighbors import NearestNeighbors
+from kneed import KneeLocator
 
 from rclpy.qos import QoSProfile, DurabilityPolicy
 import rclpy
@@ -15,8 +19,9 @@ from geometry_msgs.msg import Pose, PoseArray
 from custom_interfaces.msg import LeafPoseArrays
 from cv_bridge import CvBridge
 from ultralytics import YOLO
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN, OPTICS
 from sklearn.decomposition import PCA
+
 
 class ImageProcessor(Node):
     def __init__(self):
@@ -50,11 +55,12 @@ class ImageProcessor(Node):
         self.normal_vectors = None
         self.axes = None
 
-        self.top_n = 15
+        self.top_n = 20
         self.dbscan_eps = 0.01
-        self.dbscan_ms = 10
+        self.dbscan_ms = 5
 
         self.processed = False
+        self.threshold_xyz =1.5
 
     def point_cloud_callback(self, msg):
         if self.processed:
@@ -72,6 +78,7 @@ class ImageProcessor(Node):
         self.Poses1, self.Poses2, self.Poses3, self.Poses4, self.Poses5 = self.calculate_multiple_poses()
         self.publish_leaf_pose_arrays()
         print(self.Poses1)
+        print(self.confs)
 
         self.plot_masked_points()
         self.plotting_o3d()
@@ -133,27 +140,140 @@ class ImageProcessor(Node):
             try:
                 mask_boolean = mask.astype(bool)
                 masked_points = xyz_reshaped[mask_boolean]
-                filtered_masked_points = self.filter_outliers_dbscan(masked_points)
-                # filtered_masked_points = masked_points
-                depth_filtered_points = self.filter_points_by_depth(filtered_masked_points)
-                masks_xyzs.append(depth_filtered_points)
+                depth_filtered_points = self.filter_points_by_depth(masked_points)
+                # filtered_masked_points = self.filter_outliers_dbscan(depth_filtered_points)
+                # filtered_masked_points = self.filter_outliers_optics(depth_filtered_points)
+                filtered_masked_points = self.filter_outliers_gaussian(depth_filtered_points)
+                # filtered_masked_points = depth_filtered_points 
+                masks_xyzs.append(filtered_masked_points)
             except Exception as e:
                 self.get_logger().error('Error in extract_masks_xyzs function: {}'.format(str(e)))
 
         return masks_xyzs
 
+    # def filter_outliers_dbscan(self, points):
+    #     eps=self.dbscan_eps
+    #     min_samples=self.dbscan_ms
+
+    #     # if len(points) < min_samples:
+    #     #     return points
+
+    #     clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(points)
+    #     labels = clustering.labels_
+    #     filtered_masked_points = points[labels != -1]
+
+    #     return filtered_masked_points
+
     def filter_outliers_dbscan(self, points):
-        eps=self.dbscan_eps
-        min_samples=self.dbscan_ms
+        if self.dbscan_ms is None:
+            self.dbscan_ms = int(np.log(len(points)) + 1)
 
-        # if len(points) < min_samples:
-        #     return points
-            
-        clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(points)
+        nbrs = NearestNeighbors(n_neighbors=self.dbscan_ms).fit(points)
+        distances, _ = nbrs.kneighbors(points)
+
+        k_distances = distances[:, -1]
+        k_distances.sort()
+        kneedle = KneeLocator(range(len(k_distances)), k_distances, S=1.0, curve='convex', direction='increasing')
+        eps = k_distances[kneedle.knee] if kneedle.knee else self.dbscan_eps
+
+        # plt.figure(figsize=(10, 6))
+        # plt.plot(k_distances, marker='o', linestyle='-', markersize=8)
+        # plt.xlabel('Points sorted by distance')
+        # plt.ylabel('k-distance')
+        # plt.title('K-Distance Plot')
+        # if kneedle.knee is not None:
+        #     plt.axvline(x=kneedle.knee, linestyle='--', color='r', label=f'eps = {eps:.5f}')
+        #     plt.legend()
+
+        # plt.show()
+
+        clustering = DBSCAN(eps=eps, min_samples=self.dbscan_ms).fit(points)
         labels = clustering.labels_
-        filtered_masked_points = points[labels != -1]
+        filtered_points = points[labels != -1]
 
-        return filtered_masked_points
+
+        fig = plt.figure(figsize=(12, 6))
+
+        ax1 = fig.add_subplot(121, projection='3d')
+        ax1.scatter(points[:, 0], points[:, 1], points[:, 2], c='b', marker='o', label='Original Data')
+        ax1.set_title('Original Data Points')
+        ax1.set_xlabel('X')
+        ax1.set_ylabel('Y')
+        ax1.set_zlabel('Z')
+        ax1.legend()
+
+        ax2 = fig.add_subplot(122, projection='3d')
+        ax2.scatter(filtered_points[:, 0], filtered_points[:, 1], filtered_points[:, 2], c='r', marker='^', label='Filtered Data')
+        ax2.set_title('Filtered Data Points')
+        ax2.set_xlabel('X')
+        ax2.set_ylabel('Y')
+        ax2.set_zlabel('Z')
+        ax2.legend()
+
+        return filtered_points
+
+
+    def filter_outliers_optics(self, points):
+        if self.dbscan_ms is None:
+            self.dbscan_ms = int(np.log(len(points)) + 1)
+
+        clustering = OPTICS(min_samples=self.dbscan_ms, min_cluster_size=50, cluster_method='xi').fit(points)
+        labels = clustering.labels_
+        filtered_points = points[labels != -1]
+
+        fig = plt.figure(figsize=(12, 6))
+
+        ax1 = fig.add_subplot(121, projection='3d')
+        ax1.scatter(points[:, 0], points[:, 1], points[:, 2], c='b', marker='o', label='Original Data')
+        ax1.set_title('Original Data Points')
+        ax1.set_xlabel('X')
+        ax1.set_ylabel('Y')
+        ax1.set_zlabel('Z')
+        ax1.legend()
+
+        ax2 = fig.add_subplot(122, projection='3d')
+        ax2.scatter(filtered_points[:, 0], filtered_points[:, 1], filtered_points[:, 2], c='r', marker='^', label='Filtered Data')
+        ax2.set_title('Filtered Data Points')
+        ax2.set_xlabel('X')
+        ax2.set_ylabel('Y')
+        ax2.set_zlabel('Z')
+        ax2.legend()
+
+        plt.show()
+
+        return filtered_points
+
+    def filter_outliers_gaussian(self, points):
+        mean = np.mean(points, axis=0)
+        std = np.std(points, axis=0)
+
+        z_threshold = normalized.ppf(0.95)  
+        
+        z_scores = np.abs((points - mean) / std)
+
+        filtered_points = points[np.all(z_scores <= z_threshold, axis=1)]
+        
+        fig = plt.figure(figsize=(12, 6))
+
+        ax1 = fig.add_subplot(121, projection='3d')
+        ax1.scatter(points[:, 0], points[:, 1], points[:, 2], c='b', marker='o', label='Original Data')
+        ax1.set_title('Original Data Points')
+        ax1.set_xlabel('X')
+        ax1.set_ylabel('Y')
+        ax1.set_zlabel('Z')
+        ax1.legend()
+
+        ax2 = fig.add_subplot(122, projection='3d')
+        ax2.scatter(filtered_points[:, 0], filtered_points[:, 1], filtered_points[:, 2], c='r', marker='^', label='Filtered Data')
+        ax2.set_title('Filtered Data Points')
+        ax2.set_xlabel('X')
+        ax2.set_ylabel('Y')
+        ax2.set_zlabel('Z')
+        ax2.legend()
+
+        plt.show()
+
+        return filtered_points
 
     def filter_points_by_depth(self, points, Z_threshold=0.1):
         filtered_points = points[points[:, 2] > Z_threshold]
@@ -180,7 +300,7 @@ class ImageProcessor(Node):
             pca.fit(points) 
             normal_vector = pca.components_[-1]
 
-            if normal_vector[2] > 0:
+            if normal_vector[1] > 0:
                 normal_vector = -normal_vector
             
             vectors.append(normal_vector)
@@ -277,7 +397,7 @@ class ImageProcessor(Node):
                             np.array([-position[0], -position[1], position[2]])
                             # np.array([0, 0, 230.0]) ### subtract the flange to endeffector vector for Moveit 
                             ) # in {RG2} frame meaning x and y components need to be multiplied by -1
-            
+
             axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
             ax =  np.array([[axis1[0], axis1[1], axis1[2]],
                             [axis2[0], axis2[1], axis2[2]],
@@ -285,7 +405,7 @@ class ImageProcessor(Node):
             # transformed_axes = np.array([[-axis1[0], -axis1[1], axis1[2]],
             #                              [-axis2[0], -axis2[1], axis2[2]],
             #                              [-axis3[0], -axis3[1], axis3[2]]])
-            
+
             rotation_as_quat1 = self.transform_rotated_matrices(ax, 0)
             rotation_as_quat2 = self.transform_rotated_matrices(ax, -45)
             rotation_as_quat3 = self.transform_rotated_matrices(ax, -90)
@@ -386,16 +506,23 @@ class ImageProcessor(Node):
         ax.set_zlabel('Z')
         ax.view_init(elev=10, azim=270)
         plt.show()
-        
+
+
     def plotting_o3d(self):
+        threshold = self.threshold_xyz
+
+        distances_main = np.linalg.norm(self.points, axis=1)
+        vis_mask = distances_main < threshold
         cloud = o3d.geometry.PointCloud()
-        cloud.points = o3d.utility.Vector3dVector(self.points)
-        cloud.colors = o3d.utility.Vector3dVector(self.colors / 255.0)
+        cloud.points = o3d.utility.Vector3dVector(self.points[vis_mask])
+        cloud.colors = o3d.utility.Vector3dVector(self.colors[vis_mask] / 255.0)
 
         xyz_reshaped = self.points.reshape((self.height, self.width, 3))
         filtered_xyz = xyz_reshaped[self.combined_masks.astype(bool)]
+        distances_masks = np.linalg.norm(filtered_xyz, axis=1)
+        vis_mask = distances_masks < threshold
         filtered_cloud = o3d.geometry.PointCloud()
-        filtered_cloud.points = o3d.utility.Vector3dVector(filtered_xyz)
+        filtered_cloud.points = o3d.utility.Vector3dVector(filtered_xyz[vis_mask])
         filtered_cloud.paint_uniform_color([0, 1, 0])
 
         coordinate_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0,0,0])
@@ -403,6 +530,7 @@ class ImageProcessor(Node):
         vis = o3d.visualization.Visualizer()
         vis.create_window()
         vis.add_geometry(cloud)
+        time.sleep(0.1) 
         vis.add_geometry(filtered_cloud)
         vis.add_geometry(coordinate_frame)
 
@@ -412,23 +540,26 @@ class ImageProcessor(Node):
             points = self.masks_xyzs[i]
             if points.size == 0 or self.midpoints[i] is None:
                 continue
-
+            
             central_point = self.midpoints[i]
-            midpoint_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=0.005)
-            midpoint_sphere.translate(central_point)
-            midpoint_sphere.paint_uniform_color([1, 0, 0])
-            vis.add_geometry(midpoint_sphere)
+            distance_to_reference = np.linalg.norm(central_point)
 
-            for axis_index, axis_color in enumerate([[1, 0, 0], [0, 1, 0], [0, 0, 1]]):  
-                axis_vector = self.axes[i][axis_index] * 0.1  
-                axis_line = o3d.geometry.LineSet()
-                points = [central_point, central_point + axis_vector]
-                lines = [[0, 1]]
-                colors = [axis_color]  
-                axis_line.points = o3d.utility.Vector3dVector(points)
-                axis_line.lines = o3d.utility.Vector2iVector(lines)
-                axis_line.colors = o3d.utility.Vector3dVector(colors)
-                vis.add_geometry(axis_line)
+            if distance_to_reference < threshold:
+                midpoint_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=0.005)
+                midpoint_sphere.translate(central_point)
+                midpoint_sphere.paint_uniform_color([1, 0, 0])
+                vis.add_geometry(midpoint_sphere)
+
+                for axis_index, axis_color in enumerate([[1, 0, 0], [0, 1, 0], [0, 0, 1]]):
+                    axis_vector = self.axes[i][axis_index] * 0.1
+                    axis_line = o3d.geometry.LineSet()
+                    line_points = [central_point, central_point + axis_vector]
+                    lines = [[0, 1]]
+                    colors = [axis_color]
+                    axis_line.points = o3d.utility.Vector3dVector(line_points)
+                    axis_line.lines = o3d.utility.Vector2iVector(lines)
+                    axis_line.colors = o3d.utility.Vector3dVector(colors)
+                    vis.add_geometry(axis_line)
 
         vis.run()
         vis.destroy_window()

@@ -41,6 +41,7 @@ class ImageProcessor(Node):
         # self.model = YOLO('/home/arya/instance_segmentation/best.pt')
         self.model = YOLO('/home/arya/instance_segmentation/magnolia_model/best_yolov8x_seg.pt')
         self.conf_cutoff = 0.7
+        self.rgb_masked = None
 
         self.colors = None
         self.points = None
@@ -62,8 +63,11 @@ class ImageProcessor(Node):
         self.dbscan_eps = 0.01
         self.dbscan_ms = 5
 
-        self.processed = False
         self.threshold_xyz =1.5
+
+        self.processed = False
+        self.savedir = None
+        
 
     def point_cloud_callback(self, msg):
         if self.processed:
@@ -80,10 +84,10 @@ class ImageProcessor(Node):
         self.publish_leaf_pose_arrays()
         print(self.Poses1)
 
-
+        self.save_results()
+        self.save_ordered_segments()
         self.plot_masked_points()
         self.plotting_o3d()
-        self.save_results()
 
         self.processed = True
 
@@ -113,6 +117,7 @@ class ImageProcessor(Node):
         open_cv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         cv2.imwrite("../UCM-AgBot-ROS2/src/vision/leaf_extraction/segmentation_model/pc_rgb.jpg", open_cv_image)
         results = self.model([open_cv_image], imgsz=self.width, save=True, conf=self.conf_cutoff)
+        self.rgb_masked = results[0].orig_img
 
         combined_masks = np.zeros((self.height, self.width), dtype=np.uint8)
         ordered_masks = []
@@ -533,15 +538,36 @@ class ImageProcessor(Node):
         else:
             new_run = 1
 
-        new_run_dir = os.path.join(date_dir, f'results{new_run}')
-        os.makedirs(new_run_dir)
+        self.savedir = os.path.join(date_dir, f'results{new_run}')
+        os.makedirs(self.savedir)
 
-        results_path = os.path.join(new_run_dir, 'results.json')
+        results_path = os.path.join(self.savedir, 'results.json')
         df.to_json(results_path, orient='records')
 
         self.get_logger().info(f'Results saved to {results_path}')
+        
 
+    def save_ordered_segments(self):
+        # image_array = self.colors.reshape((self.height, self.width, 3)).astype(np.uint8)
+        # open_cv_image = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+        open_cv_image = self.rgb_masked
 
+        # for i, mask in enumerate(self.ordered_masks):
+        #     color = (0, 255, 0)  
+        #     contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #     cv2.drawContours(open_cv_image, contours, -1, color, 2)
+
+        for i, midpoint in enumerate(self.midpoints):
+            if midpoint is not None:
+                distances = np.linalg.norm(self.points - midpoint, axis=1)
+                closest_point_idx = np.argmin(distances)
+                y, x = divmod(closest_point_idx, self.width)
+                cv2.circle(open_cv_image, (x, y), 5, (255, 0, 0), -1)  
+                cv2.putText(open_cv_image, f'leaf_{i + 1}', (x + 10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+
+        plot_path = os.path.join(self.savedir, 'segmented_image_ordered.png')
+        cv2.imwrite(plot_path, open_cv_image)
+        self.get_logger().info(f'Segmented image with midpoints saved to {plot_path}')
 
 
     def plot_masked_points(self):

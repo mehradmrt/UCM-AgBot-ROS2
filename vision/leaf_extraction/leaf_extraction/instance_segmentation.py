@@ -531,8 +531,9 @@ class ImageProcessor(Node):
             os.makedirs(date_dir)
 
         existing_dirs = [d for d in os.listdir(date_dir) if os.path.isdir(os.path.join(date_dir, d))]
-        existing_dirs.sort()
+
         if existing_dirs:
+            existing_dirs.sort(key=lambda x: int(x.replace('results', '')))
             last_run = int(existing_dirs[-1].replace('results', ''))
             new_run = last_run + 1
         else:
@@ -562,8 +563,8 @@ class ImageProcessor(Node):
                 distances = np.linalg.norm(self.points - midpoint, axis=1)
                 closest_point_idx = np.argmin(distances)
                 y, x = divmod(closest_point_idx, self.width)
-                cv2.circle(open_cv_image, (x, y), 5, (255, 0, 0), -1)  
-                cv2.putText(open_cv_image, f'leaf_{i + 1}', (x + 10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                cv2.circle(open_cv_image, (x, y), 5, (0, 0, 255), -1)  
+                cv2.putText(open_cv_image, f'leaf_{i + 1}', (x + 10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         plot_path = os.path.join(self.savedir, 'segmented_image_ordered.png')
         cv2.imwrite(plot_path, open_cv_image)

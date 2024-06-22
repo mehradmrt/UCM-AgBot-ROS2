@@ -21,6 +21,8 @@ from cv_bridge import CvBridge
 from ultralytics import YOLO
 from sklearn.cluster import DBSCAN, OPTICS
 from sklearn.decomposition import PCA
+import pandas as pd
+import os
 
 
 class ImageProcessor(Node):
@@ -34,7 +36,7 @@ class ImageProcessor(Node):
 
         self.multi_pose_array_publisher = self.create_publisher(LeafPoseArrays,'/target_leaves_multi_pose',
                                 QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
-        
+
         self.bridge = CvBridge()
         # self.model = YOLO('/home/arya/instance_segmentation/best.pt')
         self.model = YOLO('/home/arya/instance_segmentation/magnolia_model/best_yolov8x_seg.pt')
@@ -51,11 +53,12 @@ class ImageProcessor(Node):
         self.ordered_masks = None
         self.confs = None
         self.masks_xyzs = None
+        self.combined_masks_filtered = None
         self.midpoints = None
         self.normal_vectors = None
         self.axes = None
 
-        self.top_n = 20
+        self.top_n = 40
         self.dbscan_eps = 0.01
         self.dbscan_ms = 5
 
@@ -68,20 +71,19 @@ class ImageProcessor(Node):
 
         self.points, self.colors = self.extract_points_and_colors(msg)
         self.combined_masks, self.ordered_masks, self.confs = self.extract_masks()
-        self.masks_xyzs = self.extract_masks_xyzs()
+        self.combined_masks_filtered, self.masks_xyzs = self.extract_masks_xyzs()
         self.midpoints = self.extract_midpoints()
         self.normal_vectors = self.fit_plane_and_find_normal()
         self.axes = self.axes_for_masks()
-        # self.Poses1_solo = self.transform_axes_and_calculate_rotation()
-        # self.publish_pose_array()
-        # print(self.Poses1_solo) 
+        self.reorder_and_limit()
         self.Poses1, self.Poses2, self.Poses3, self.Poses4, self.Poses5 = self.calculate_multiple_poses()
         self.publish_leaf_pose_arrays()
         print(self.Poses1)
-        print(self.confs)
+
 
         self.plot_masked_points()
         self.plotting_o3d()
+        self.save_results()
 
         self.processed = True
 
@@ -135,6 +137,7 @@ class ImageProcessor(Node):
     def extract_masks_xyzs(self):
         masks_xyzs = []
         xyz_reshaped = self.points.reshape((self.height, self.width, 3))
+        combined_masks_filtered = np.zeros((self.height, self.width), dtype=np.uint8)
 
         for mask in self.ordered_masks:
             try:
@@ -146,10 +149,12 @@ class ImageProcessor(Node):
                 filtered_masked_points = self.filter_outliers_gaussian(depth_filtered_points)
                 # filtered_masked_points = depth_filtered_points 
                 masks_xyzs.append(filtered_masked_points)
+                mask_indices = np.all(np.isin(xyz_reshaped, filtered_masked_points), axis=-1)
+                combined_masks_filtered[mask_indices] = 1
             except Exception as e:
                 self.get_logger().error('Error in extract_masks_xyzs function: {}'.format(str(e)))
 
-        return masks_xyzs
+        return combined_masks_filtered, masks_xyzs
 
     # def filter_outliers_dbscan(self, points):
     #     eps=self.dbscan_eps
@@ -245,33 +250,33 @@ class ImageProcessor(Node):
 
     def filter_outliers_gaussian(self, points):
         mean = np.mean(points, axis=0)
-        std = np.std(points, axis=0)
+        std = np.std(points, axis=0)   
 
-        z_threshold = normalized.ppf(0.95)  
+        z_threshold = normalized.ppf(0.98)  
         
         z_scores = np.abs((points - mean) / std)
 
         filtered_points = points[np.all(z_scores <= z_threshold, axis=1)]
         
-        fig = plt.figure(figsize=(12, 6))
+        # fig = plt.figure(figsize=(12, 6))
 
-        ax1 = fig.add_subplot(121, projection='3d')
-        ax1.scatter(points[:, 0], points[:, 1], points[:, 2], c='b', marker='o', label='Original Data')
-        ax1.set_title('Original Data Points')
-        ax1.set_xlabel('X')
-        ax1.set_ylabel('Y')
-        ax1.set_zlabel('Z')
-        ax1.legend()
+        # ax1 = fig.add_subplot(121, projection='3d')
+        # ax1.scatter(points[:, 0], points[:, 1], points[:, 2], c='b', marker='o', label='Original Data')
+        # ax1.set_title('Original Data Points')
+        # ax1.set_xlabel('X')
+        # ax1.set_ylabel('Y')
+        # ax1.set_zlabel('Z')
+        # ax1.legend()
 
-        ax2 = fig.add_subplot(122, projection='3d')
-        ax2.scatter(filtered_points[:, 0], filtered_points[:, 1], filtered_points[:, 2], c='r', marker='^', label='Filtered Data')
-        ax2.set_title('Filtered Data Points')
-        ax2.set_xlabel('X')
-        ax2.set_ylabel('Y')
-        ax2.set_zlabel('Z')
-        ax2.legend()
+        # ax2 = fig.add_subplot(122, projection='3d')
+        # ax2.scatter(filtered_points[:, 0], filtered_points[:, 1], filtered_points[:, 2], c='r', marker='^', label='Filtered Data')
+        # ax2.set_title('Filtered Data Points')
+        # ax2.set_xlabel('X')
+        # ax2.set_ylabel('Y')
+        # ax2.set_zlabel('Z')
+        # ax2.legend()
 
-        plt.show()
+        # plt.show()
 
         return filtered_points
 
@@ -345,14 +350,27 @@ class ImageProcessor(Node):
         edges = cv2.Canny(mask.astype(np.uint8) * 255, 100, 200)
         return np.argwhere(edges > 0)
 
+
     def project_vector_onto_plane(self, vector, normal_vector):
         projected_vector = vector - np.dot(vector, normal_vector) * normal_vector
         return projected_vector / np.linalg.norm(projected_vector)
 
+    def reorder_and_limit(self):
+        distances = np.array([np.linalg.norm(mp) for mp in self.midpoints])
+        sorted_indices = np.argsort(distances)
+        filtered_indices = sorted_indices[distances[sorted_indices] < self.threshold_xyz]
+
+        self.midpoints = [self.midpoints[idx] for idx in filtered_indices]
+        self.masks_xyzs = [self.masks_xyzs[idx] for idx in filtered_indices]
+        self.confs = [self.confs[idx] for idx in filtered_indices]
+        self.normal_vectors = [self.normal_vectors[idx] for idx in filtered_indices]
+        self.axes = [self.axes[idx] for idx in filtered_indices]
+
+
     def transform_axes_and_calculate_rotation(self):
         transformed_elements = []
         for i, axis_set in enumerate(self.axes):
-            ''' if sent to the gripper directly '''
+            ''' if sent to the gripper frame '''
 
             position = self.midpoints[i]
             transformed_p=( 
@@ -386,6 +404,7 @@ class ImageProcessor(Node):
 
         return np.array(transformed_elements)
     
+    
     def calculate_multiple_poses(self):
         Poses1, Poses2, Poses3, Poses4, Poses5 = [], [], [], [], []
         
@@ -396,21 +415,18 @@ class ImageProcessor(Node):
                             np.array([0.0, 0.0, -15.0])*0.001+ ### the gap between the new printed fingers and the old ones  
                             np.array([-position[0], -position[1], position[2]])
                             # np.array([0, 0, 230.0]) ### subtract the flange to endeffector vector for Moveit 
-                            ) # in {RG2} frame meaning x and y components need to be multiplied by -1
+                            ) # in {RG2} frame. Meaning x and y components of position need to be multiplied by -1
 
             axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
-            ax =  np.array([[axis1[0], axis1[1], axis1[2]],
-                            [axis2[0], axis2[1], axis2[2]],
-                            [axis3[0], axis3[1], axis3[2]]])
-            # transformed_axes = np.array([[-axis1[0], -axis1[1], axis1[2]],
-            #                              [-axis2[0], -axis2[1], axis2[2]],
-            #                              [-axis3[0], -axis3[1], axis3[2]]])
+            R_g_l1 =  np.array([[-axis1[0], -axis2[0], -axis3[0]],
+                                [-axis1[1], -axis2[1], -axis3[1]],
+                                [ axis1[2],  axis2[2],  axis3[2]]]) # how leaf pose1 axes are represented in gripper frame
 
-            rotation_as_quat1 = self.transform_rotated_matrices(ax, 0)
-            rotation_as_quat2 = self.transform_rotated_matrices(ax, -45)
-            rotation_as_quat3 = self.transform_rotated_matrices(ax, -90)
-            rotation_as_quat4 = self.transform_rotated_matrices(ax, -135)
-            rotation_as_quat5 = self.transform_rotated_matrices(ax, -180)
+            rotation_as_quat1 = self.transform_rotated_matrices(R_g_l1, 0)
+            rotation_as_quat2 = self.transform_rotated_matrices(R_g_l1, -45)
+            rotation_as_quat3 = self.transform_rotated_matrices(R_g_l1, -90)
+            rotation_as_quat4 = self.transform_rotated_matrices(R_g_l1, -135)
+            rotation_as_quat5 = self.transform_rotated_matrices(R_g_l1, -180)
 
             Poses1.append(np.concatenate([transformed_p,rotation_as_quat1]))
             Poses2.append(np.concatenate([transformed_p,rotation_as_quat2]))
@@ -419,22 +435,15 @@ class ImageProcessor(Node):
             Poses5.append(np.concatenate([transformed_p,rotation_as_quat5]))
 
         return np.array(Poses1), np.array(Poses2), np.array(Poses3), np.array(Poses4), np.array(Poses5)
-    
+
 
     def transform_rotated_matrices(self, ax, angle):
+        R_g_l1 = R.from_matrix(ax)
+        R_l1_lx = R.from_euler('X', angle, degrees=True)
+        R_g_lx = (R_g_l1 * R_l1_lx).as_quat()
 
-        rotobj = R.from_euler('x', angle, degrees=True)
-        rotated_axes = rotobj.apply(ax)
+        return R_g_lx
 
-        axis1, axis2, axis3 = rotated_axes[0], rotated_axes[1], rotated_axes[2]
-        transformed_axes = np.array([[-axis1[0], -axis1[1], -axis1[2]],
-                                     [-axis2[0], -axis2[1], -axis2[2]],
-                                     [axis3[0], axis3[1], axis3[2]]])
-        
-        orientmat = R.from_matrix(transformed_axes)
-        orientation_as_quat = orientmat.as_quat()
-
-        return orientation_as_quat
 
     def publish_pose_array(self):
         pose_array_msg = PoseArray()
@@ -452,6 +461,7 @@ class ImageProcessor(Node):
             pose_array_msg.poses.append(pose_msg)
 
         self.pose_array_publisher.publish(pose_array_msg)
+
 
     def publish_leaf_pose_arrays(self):
         leaf_pose_arrays_msg = LeafPoseArrays()
@@ -480,6 +490,60 @@ class ImageProcessor(Node):
 
         self.multi_pose_array_publisher.publish(leaf_pose_arrays_msg)
 
+
+    def save_results(self):
+        # Create a dictionary of the attributes to save
+        results_data = {
+            'points': self.points,
+            'colors': self.colors,
+            'combined_masks': self.combined_masks,
+            'ordered_masks': self.ordered_masks,
+            'confs': self.confs,
+            'masks_xyzs': self.masks_xyzs,
+            'combined_masks_filtered': self.combined_masks_filtered,
+            'midpoints': self.midpoints,
+            'normal_vectors': self.normal_vectors,
+            'axes': self.axes,
+            'Poses1': self.Poses1,
+            'Poses2': self.Poses2,
+            'Poses3': self.Poses3,
+            'Poses4': self.Poses4,
+            'Poses5': self.Poses5,
+            'width': self.width,
+            'height': self.height,
+            'top_n': self.top_n,
+            'dbscan_eps': self.dbscan_eps,
+            'dbscan_ms': self.dbscan_ms,
+            'threshold_xyz': self.threshold_xyz,
+        }
+
+        df = pd.DataFrame({k: [v] for k, v in results_data.items()})
+
+        base_dir = 'runs/results'
+        date_dir = os.path.join(base_dir, time.strftime("%m-%d-%Y"))
+
+        if not os.path.exists(date_dir):
+            os.makedirs(date_dir)
+
+        existing_dirs = [d for d in os.listdir(date_dir) if os.path.isdir(os.path.join(date_dir, d))]
+        existing_dirs.sort()
+        if existing_dirs:
+            last_run = int(existing_dirs[-1].replace('results', ''))
+            new_run = last_run + 1
+        else:
+            new_run = 1
+
+        new_run_dir = os.path.join(date_dir, f'results{new_run}')
+        os.makedirs(new_run_dir)
+
+        results_path = os.path.join(new_run_dir, 'results.json')
+        df.to_json(results_path, orient='records')
+
+        self.get_logger().info(f'Results saved to {results_path}')
+
+
+
+
     def plot_masked_points(self):
         num_masks = min(len(self.masks_xyzs), self.top_n)
         fig = plt.figure()
@@ -494,12 +558,6 @@ class ImageProcessor(Node):
             central_point = self.midpoints[i]
             ax.scatter(points[:, 0], points[:, 1], points[:, 2], color=colors(i), s=1)
             ax.scatter(central_point[0], central_point[1], central_point[2], color='black', s=60)
-
-            # for axis_index, axis_color in enumerate(['black', 'green', 'blue']):  # X, Y, Z axes
-            #     axis_vector = self.axes[i][axis_index]
-            #     ax.quiver(central_point[0], central_point[1], central_point[2], 
-            #             axis_vector[0], axis_vector[1], axis_vector[2], 
-            #             length=0.1, color=axis_color, normalize=True)
 
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
@@ -518,7 +576,7 @@ class ImageProcessor(Node):
         cloud.colors = o3d.utility.Vector3dVector(self.colors[vis_mask] / 255.0)
 
         xyz_reshaped = self.points.reshape((self.height, self.width, 3))
-        filtered_xyz = xyz_reshaped[self.combined_masks.astype(bool)]
+        filtered_xyz = xyz_reshaped[self.combined_masks_filtered.astype(bool)]
         distances_masks = np.linalg.norm(filtered_xyz, axis=1)
         vis_mask = distances_masks < threshold
         filtered_cloud = o3d.geometry.PointCloud()
@@ -530,7 +588,6 @@ class ImageProcessor(Node):
         vis = o3d.visualization.Visualizer()
         vis.create_window()
         vis.add_geometry(cloud)
-        time.sleep(0.1) 
         vis.add_geometry(filtered_cloud)
         vis.add_geometry(coordinate_frame)
 
@@ -563,6 +620,9 @@ class ImageProcessor(Node):
 
         vis.run()
         vis.destroy_window()
+
+
+
 
 def main(args=None):
     rclpy.init(args=args)

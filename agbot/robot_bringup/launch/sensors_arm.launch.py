@@ -19,29 +19,14 @@ def generate_launch_description():
 
     realsense = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(realsense_launch_dir),
-        condition=IfCondition(LaunchConfiguration('realsense')),
-        launch_arguments={
-            'pointcloud.enable': 'true',
-            'pointcloud.ordered_pc': 'true',
-            'depth_module.profile': '1280x720x30',
-            'rgb_camera.profile': '1280x720x30'
-        }.items()
-    )
-
-    set_camera_param = TimerAction(
-        period=1.0, 
-        actions=[ExecuteProcess(
-            cmd=['ros2', 'param', 'set', '/camera/camera', 'pointcloud.ordered_pc', 'true'],
-            shell=True
+        condition=IfCondition(LaunchConfiguration('realsense'))
         )
-    ],condition=IfCondition(LaunchConfiguration('realsense'))
-    )
 
     rg2 = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(rg2_launch_dir),
             condition=IfCondition(LaunchConfiguration('rg2'))
         )
-    
+
     nanospec = Node(
             package='nanospec',
             executable='NSP32_service_node',
@@ -57,6 +42,5 @@ def generate_launch_description():
         nanospec,
         realsense,
 
-        set_camera_param  
     ])
  

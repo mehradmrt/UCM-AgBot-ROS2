@@ -38,8 +38,7 @@ class ImageProcessor(Node):
                                 QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
 
         self.bridge = CvBridge()
-        # self.model = YOLO('/home/arya/instance_segmentation/best.pt')
-        self.model = YOLO('/home/arya/instance_segmentation/magnolia_model/best_yolov8x_seg.pt')
+        self.model = YOLO('src/vision/leaf_extraction/segmentation_model/magnolia_best_yolov8x_seg.pt')
         self.conf_cutoff = 0.7
         self.rgb_masked = None
 

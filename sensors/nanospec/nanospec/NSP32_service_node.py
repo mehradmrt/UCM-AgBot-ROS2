@@ -9,6 +9,7 @@ from nanospec.NanoLambdaNSP32 import *
 class SpectrumService(Node):
     def __init__(self):
         super().__init__('NSP32_service_node')
+        self.lock = threading.Lock()  # Lock for thread-safe data handling
         self.wavelengths = []
         self.spectrum = []
         self.ser = serial.Serial('/dev/nanospec', baudrate=115200, bytesize=serial.EIGHTBITS, 
@@ -25,9 +26,13 @@ class SpectrumService(Node):
         self.nsp32.GetWavelength(0)
         self.nsp32.AcqSpectrum(0, 32, 3, False)
 
-        time.sleep(0.5)
-        response.wavelengths = self.wavelengths
-        response.spectrum = self.spectrum
+        time.sleep(.3)  # Consider reducing or removing this if not necessary
+
+        # Use lock to safely access shared resources
+        with self.lock:
+            response.wavelengths = self.wavelengths.copy()
+            response.spectrum = self.spectrum.copy()
+
         return response
 
     def data_channel_send_data(self, data):
@@ -40,17 +45,17 @@ class SpectrumService(Node):
                 nsp32.OnReturnBytesReceived(ser.read(ser.in_waiting))
 
     def on_return_packet_received(self, pkt):
-        if pkt.CmdCode == CmdCodeEnum.GetSensorId:
-            self.get_logger().info(f'Sensor id = {pkt.ExtractSensorIdStr()}')
-        elif pkt.CmdCode == CmdCodeEnum.GetWavelength:
-            infoW = pkt.ExtractWavelengthInfo()
-            self.wavelengths = list(infoW.Wavelength) 
-            self.get_logger().info(f'Wavelengths received.')
-            # self.get_logger().info(f'Wavelengths received. Type: {(infoW.Wavelength)}')
-        elif pkt.CmdCode == CmdCodeEnum.GetSpectrum:
-            infoS = pkt.ExtractSpectrumInfo()
-            self.spectrum = list(infoS.Spectrum) 
-            self.get_logger().info(f'Spectrum received.')
+        with self.lock:  # Use lock when modifying shared data
+            if pkt.CmdCode == CmdCodeEnum.GetSensorId:
+                self.get_logger().info(f'Sensor id = {pkt.ExtractSensorIdStr()}')
+            elif pkt.CmdCode == CmdCodeEnum.GetWavelength:
+                infoW = pkt.ExtractWavelengthInfo()
+                self.wavelengths = list(infoW.Wavelength)
+                self.get_logger().info('Wavelengths received.')
+            elif pkt.CmdCode == CmdCodeEnum.GetSpectrum:
+                infoS = pkt.ExtractSpectrumInfo()
+                self.spectrum = list(infoS.Spectrum)
+                self.get_logger().info('Spectrum received.')
 
 def main(args=None):
     rclpy.init(args=args)

@@ -13,7 +13,7 @@ def generate_launch_description():
     realsense_launch_dir = os.path.join(get_package_share_directory('realsense2_camera'), 'launch', 'rs_launch.py')
     rg2_launch_dir = os.path.join(get_package_share_directory('onrobot_rg_control'), 'launch', 'bringup_server.launch.py')
 
-    realsense_arg = DeclareLaunchArgument('realsense', default_value='false', description='Realsense d435i sensor node')
+    realsense_arg = DeclareLaunchArgument('realsense', default_value='true', description='Realsense d435i sensor node')
     rg2_arg = DeclareLaunchArgument('rg2', default_value='true', description='RG2 Gripper launch file')
     nanospec_arg = DeclareLaunchArgument('nanospec', default_value='true', description='Nanolambda nanospectrometer launch file')
 
@@ -43,4 +43,3 @@ def generate_launch_description():
         realsense,
 
     ])
- 

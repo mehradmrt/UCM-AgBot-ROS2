@@ -2,3 +2,5 @@ logs/
 build/
 install/
 .vscode/
+
+vision/leaf_extraction/segmentation_model/magnolia_best_yolov8x_seg.pt

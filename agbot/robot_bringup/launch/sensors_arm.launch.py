@@ -32,14 +32,21 @@ def generate_launch_description():
             executable='NSP32_service_node',
             condition=IfCondition(LaunchConfiguration('nanospec'))
         )
+    nanospec_trig = Node(
+        package='nanospec',
+        executable='NSP32_client_triggered',
+        condition=IfCondition(LaunchConfiguration('nanospec'))
+    )
 
     return LaunchDescription([
         realsense_arg,
         rg2_arg,
         nanospec_arg,
+        
 
         rg2,
         nanospec,
+        nanospec_trig,
         realsense,
 
     ])

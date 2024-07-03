@@ -73,7 +73,7 @@ class SpectrumMeter:
 		self._stopSpectrum = False			# stop spectrum acquisition and discard return packets
 		self._roundTripTimeStart = 0		# single command round trip start time
 		self._curAppMode = SpectrumMeter._AppRunModeEnum.Disconnected	# current app mode
-		self._serialPort = None				# current using serial port
+		self._serialPort = None			# current using serial port
 
 		self._figure = None					# spectrum figure
 		self._plot = None					# spectrum plot

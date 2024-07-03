@@ -20,7 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'NSP32_service_node = nanospec.NSP32_service_node:main'
+            'NSP32_service_node = nanospec.NSP32_service_node:main',
+            'NSP32_client_node = nanospec.NSP32_client_node:main',
+            'NSP32_client_triggered = nanospec.NSP32_client_triggered:main'
         ],
     },
 )

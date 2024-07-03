@@ -9,7 +9,7 @@ from nanospec.NanoLambdaNSP32 import *
 class SpectrumService(Node):
     def __init__(self):
         super().__init__('NSP32_service_node')
-        self.lock = threading.Lock()  # Lock for thread-safe data handling
+        self.lock = threading.Lock()
         self.wavelengths = []
         self.spectrum = []
         self.ser = serial.Serial('/dev/nanospec', baudrate=115200, bytesize=serial.EIGHTBITS, 
@@ -24,14 +24,14 @@ class SpectrumService(Node):
         self.get_logger().info('Acquiring spectrum...')
         self.nsp32.GetSensorId(0)
         self.nsp32.GetWavelength(0)
-        self.nsp32.AcqSpectrum(0, 32, 3, False)
+        self.nsp32.AcqSpectrum(0, 32, 3, True)
 
-        time.sleep(.3)  # Consider reducing or removing this if not necessary
-
-        # Use lock to safely access shared resources
-        with self.lock:
-            response.wavelengths = self.wavelengths.copy()
-            response.spectrum = self.spectrum.copy()
+        while rclpy.ok():
+            with self.lock:
+                if self.spectrum:
+                    response.wavelengths = self.wavelengths.copy()
+                    response.spectrum = self.spectrum.copy()
+                    break
 
         return response
 

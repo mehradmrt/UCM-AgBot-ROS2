@@ -38,7 +38,8 @@ class ImageProcessor(Node):
                                 QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
 
         self.bridge = CvBridge()
-        self.model = YOLO('src/vision/leaf_extraction/segmentation_model/magnolia_best_yolov8x_seg.pt')
+        # self.model = YOLO('src/vision/leaf_extraction/segmentation_model/magnolia_best_yolov8x_seg.pt')
+        self.model = YOLO('src/vision/leaf_extraction/segmentation_model/citrus.pt')
         self.conf_cutoff = 0.7
         self.rgb_masked = None
 
@@ -257,7 +258,7 @@ class ImageProcessor(Node):
         std = np.std(points, axis=0)   
 
         z_threshold = normalized.ppf(0.98)  
-        
+
         z_scores = np.abs((points - mean) / std)
 
         filtered_points = points[np.all(z_scores <= z_threshold, axis=1)]

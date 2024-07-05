@@ -6,7 +6,7 @@ from custom_interfaces.msg import NanoSpec
 
 class SpectrumClient(Node):
     def __init__(self):
-        super().__init__('spectrum_client_node')
+        super().__init__('spectrum_client_triggered')
 
         self.client = self.create_client(GetSpectrum, 'get_spectrum')
         while not self.client.wait_for_service(timeout_sec=1.0):
@@ -40,7 +40,7 @@ class SpectrumClient(Node):
             spectrum_msg.wavelengths = wavelengths
             spectrum_msg.spectrum = spectrum
             
-            self.get_logger().info(f'Published data: wavelengths={wavelengths}, spectrum={spectrum}')
+            # self.get_logger().info(f'Published data: wavelengths={wavelengths}, spectrum={spectrum}')
             self.publisher.publish(spectrum_msg)
             self.get_logger().info('Published wavelengths and spectrum.')
         except Exception as e:

@@ -38,8 +38,8 @@ class ImageProcessor(Node):
                                 QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
 
         self.bridge = CvBridge()
-        # self.model = YOLO('src/vision/leaf_extraction/segmentation_model/magnolia_best_yolov8x_seg.pt')
-        self.model = YOLO('src/vision/leaf_extraction/segmentation_model/citrus.pt')
+        self.model = YOLO('src/vision/leaf_extraction/segmentation_model/magnolia_best_yolov8x_seg.pt')
+        # self.model = YOLO('src/vision/leaf_extraction/segmentation_model/citrus.pt')
         self.conf_cutoff = 0.7
         self.rgb_masked = None
 
@@ -355,7 +355,6 @@ class ImageProcessor(Node):
         edges = cv2.Canny(mask.astype(np.uint8) * 255, 100, 200)
         return np.argwhere(edges > 0)
 
-
     def project_vector_onto_plane(self, vector, normal_vector):
         projected_vector = vector - np.dot(vector, normal_vector) * normal_vector
         return projected_vector / np.linalg.norm(projected_vector)
@@ -384,7 +383,7 @@ class ImageProcessor(Node):
                             np.array([-position[0], -position[1], position[2]])
                             # np.array([0, 0, 230.0]) ### subtract the flange to endeffector vector for Moveit 
                             )
-            
+
             axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
 
             transformed_axes = np.array([[-axis1[0], -axis1[1], -axis1[2]],
@@ -408,8 +407,8 @@ class ImageProcessor(Node):
             # transformed_elements.append(np.concatenate([transformed_p, rotation_as_quat]))
 
         return np.array(transformed_elements)
-    
-    
+
+
     def calculate_multiple_poses(self):
         Poses1, Poses2, Poses3, Poses4, Poses5 = [], [], [], [], []
         
@@ -418,8 +417,8 @@ class ImageProcessor(Node):
             transformed_p=( 
                             np.array([17.5, 124.33, -195.62])*0.001+  ### the vector that connects RG2 to camera
                             np.array([0.0, 0.0, -15.0])*0.001+ ### the gap between the new printed fingers and the old ones  
-                            np.array([-position[0], -position[1], position[2]])
-                            # np.array([0, 0, 230.0]) ### subtract the flange to endeffector vector for Moveit 
+                            np.array([-position[0], -position[1], position[2]])+  ### Midpoints as detected by the camera
+                            np.array([30.0, -20.0, 0.0])*0.001 ### camera bias
                             ) # in {RG2} frame. Meaning x and y components of position need to be multiplied by -1
 
             axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]

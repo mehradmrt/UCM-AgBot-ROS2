@@ -24,7 +24,7 @@ class SpectrumService(Node):
         self.get_logger().info('Acquiring spectrum...')
         self.nsp32.GetSensorId(0)
         self.nsp32.GetWavelength(0)
-        self.nsp32.AcqSpectrum(0, 32, 3, True)
+        self.nsp32.AcqSpectrum(0, 1, 20, True)
 
         while rclpy.ok():
             with self.lock:

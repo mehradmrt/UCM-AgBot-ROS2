@@ -24,7 +24,6 @@ from sklearn.decomposition import PCA
 import pandas as pd
 import os
 
-
 class ImageProcessor(Node):
     def __init__(self):
         super().__init__('instance_segmentation')

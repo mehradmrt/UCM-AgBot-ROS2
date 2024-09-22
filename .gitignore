@@ -3,4 +3,10 @@ build/
 install/
 .vscode/
 
+
 vision/leaf_extraction/segmentation_model/magnolia_best_yolov8x_seg.pt
+
+vision/leaf_extraction/segmentation_model/pistachio_yolov8l-seg.pt
+
+vision/leaf_extraction/segmentation_model/final-pistachio-yolov8x-seg.pt
+

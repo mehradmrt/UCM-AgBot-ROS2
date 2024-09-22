@@ -37,9 +37,11 @@ class ImageProcessor(Node):
                                 QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
 
         self.bridge = CvBridge()
-        self.model = YOLO('src/vision/leaf_extraction/segmentation_model/magnolia_best_yolov8x_seg.pt')
+        # self.model = YOLO('src/vision/leaf_extraction/segmentation_model/magnolia_best_yolov8x_seg.pt')
+        self.model = YOLO('src/vision/leaf_extraction/segmentation_model/final-pistachio-yolov8x-seg.pt')
         # self.model = YOLO('src/vision/leaf_extraction/segmentation_model/citrus.pt')
-        self.conf_cutoff = 0.7
+        
+        self.conf_cutoff = 0.5
         self.rgb_masked = None
 
         self.colors = None
@@ -417,7 +419,7 @@ class ImageProcessor(Node):
                             np.array([17.5, 124.33, -195.62])*0.001+  ### the vector that connects RG2 to camera
                             np.array([0.0, 0.0, -15.0])*0.001+ ### the gap between the new printed fingers and the old ones  
                             np.array([-position[0], -position[1], position[2]])+  ### Midpoints as detected by the camera
-                            np.array([30.0, -20.0, 0.0])*0.001 ### camera bias
+                            np.array([30.0, -25.0, -10.0])*0.001 ### camera bias
                             ) # in {RG2} frame. Meaning x and y components of position need to be multiplied by -1
 
             axis1, axis2, axis3 = axis_set[0], axis_set[1], axis_set[2]
@@ -544,7 +546,6 @@ class ImageProcessor(Node):
         df.to_json(results_path, orient='records')
 
         self.get_logger().info(f'Results saved to {results_path}')
-        
 
     def save_ordered_segments(self):
         # image_array = self.colors.reshape((self.height, self.width, 3)).astype(np.uint8)
@@ -645,8 +646,6 @@ class ImageProcessor(Node):
 
         vis.run()
         vis.destroy_window()
-
-
 
 
 def main(args=None):

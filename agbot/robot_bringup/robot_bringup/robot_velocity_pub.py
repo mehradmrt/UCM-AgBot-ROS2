@@ -20,27 +20,23 @@ class VelocityCalculator(Node):
         v = (v_right + v_left) / 2.0
         w = (v_right - v_left) / wheel_separation
 
-        # Create and populate the TwistWithCovarianceStamped message
         twist_stamped = TwistWithCovarianceStamped()
         twist_stamped.header.stamp = self.get_clock().now().to_msg()
-        twist_stamped.header.frame_id = "base_link"  # Assuming velocities are in the base_link frame
+        twist_stamped.header.frame_id = "base_link"  
 
         twist_stamped.twist.twist.linear.x = v
         twist_stamped.twist.twist.angular.z = w
 
-        # Assuming some arbitrary covariance values for the example.
-        # You should adjust these based on your system's characteristics.
         twist_stamped.twist.covariance = [
-            0.01, 0.0,  0.0,  0.0,  0.0,  0.0,
-            0.0,  0.01, 0.0,  0.0,  0.0,  0.0,
-            0.0,  0.0,  0.01, 0.0,  0.0,  0.0,
-            0.0,  0.0,  0.0,  0.01, 0.0,  0.0,
-            0.0,  0.0,  0.0,  0.0,  0.01, 0.0,
-            0.0,  0.0,  0.0,  0.0,  0.0,  0.01
+            0.0001, 0.0,  0.0,  0.0,  0.0,  0.0,
+            0.0,  0.0001, 0.0,  0.0,  0.0,  0.0,
+            0.0,  0.0,  0.0001, 0.0,  0.0,  0.0,
+            0.0,  0.0,  0.0,  0.0001, 0.0,  0.0,
+            0.0,  0.0,  0.0,  0.0,  0.0001, 0.0,
+            0.0,  0.0,  0.0,  0.0,  0.0,  0.0001
         ]
 
         self.twist_pub.publish(twist_stamped)
-
 
 
 def main(args=None):
@@ -52,3 +48,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+

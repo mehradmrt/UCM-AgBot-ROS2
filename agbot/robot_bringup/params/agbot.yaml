@@ -90,10 +90,10 @@ bt_navigator_rclcpp_node:
 controller_server:
   ros__parameters:
     use_sim_time: False
-    controller_frequency: 30.0
-    min_x_velocity_threshold: 0.001
-    min_y_velocity_threshold: 0.5
-    min_theta_velocity_threshold: 0.001
+    controller_frequency: 35.0
+    min_x_velocity_threshold: 0.01
+    min_y_velocity_threshold: 0.01
+    min_theta_velocity_threshold: 0.01
     progress_checker_plugin: "progress_checker"
     goal_checker_plugin: "goal_checker"
     controller_plugins: ["FollowPath"]
@@ -111,23 +111,23 @@ controller_server:
       stateful: True
     # DWB parameters
     FollowPath:
+      # Default 0.26 for max_vel_x and max_speed_xy and 1.0 for max_vel_theta
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: 0.01
+      min_vel_x: 0.0
       min_vel_y: 0.0
-      # Default 0.26 for max_vel_x and max_speed_xy and 1.0 for max_vel_theta
-      max_vel_x: 2.0 
+      max_vel_x: 0.175
       max_vel_y: 0.0
-      max_vel_theta: 1.0
+      max_vel_theta: 0.25
       min_speed_xy: 0.0
-      max_speed_xy: 2.0
+      max_speed_xy: 0.175
       min_speed_theta: 0.0
-      acc_lim_x: 2.5
+      acc_lim_x: 0.05
       acc_lim_y: 0.0
-      acc_lim_theta: 3.2
-      decel_lim_x: -2.5
+      acc_lim_theta: 0.05
+      decel_lim_x: -0.05
       decel_lim_y: 0.0
-      decel_lim_theta: -3.2
+      decel_lim_theta: -0.05
       vx_samples: 50
       vy_samples: 5
       vtheta_samples: 50
@@ -135,7 +135,7 @@ controller_server:
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 0.2
-      xy_goal_tolerance: 0.25
+      xy_goal_tolerance: 1.0
       trans_stopped_velocity: 0.25
       short_circuit_trajectory_evaluation: True
       stateful: True
@@ -158,7 +158,7 @@ controller_server_rclcpp_node:
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 30.0 
+      update_frequency: 100.0 
       publish_frequency: 50.0
       global_frame: odom
       robot_base_frame: base_link

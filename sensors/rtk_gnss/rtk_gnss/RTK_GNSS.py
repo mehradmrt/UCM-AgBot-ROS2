@@ -10,7 +10,7 @@ class GPSPublisher_ser(Node):
         super().__init__('gps_subpub')
         self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
 
-        self.declare_parameter("serial_port", "/dev/reachRS2") 
+        self.declare_parameter("serial_port", "/dev/reachRS") # options are: /dev/reachRS2 or /dev/reachRS
         self.declare_parameter("baudrate", 115200)  
 
         self.serial_port = self.get_parameter("serial_port").get_parameter_value().string_value
@@ -23,22 +23,21 @@ class GPSPublisher_ser(Node):
             self.get_logger().error('Failed to connect to {}. Error: {}'.format(self.serial_port, str(err)))
             return
 
-        self.covariance = [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
+        self.covariance = [0.0001, 0.0, 0.0, 0.0, 0.0001, 0.0, 0.0, 0.0, 0.0001]
         
-        time_period = 0.2
+        time_period = 0.1
         self.timer = self.create_timer(time_period, self.read_and_publish_gps_info)
 
 
-
     def read_and_publish_gps_info(self):
-        # self.get_logger().info('In read_and_publish_gps_info...')
+        self.get_logger().info('In read_and_publish_gps_info...')
         try:
             data = self.serial_conn.readline()
             if data:
-                # print(data)
+                print(data)
                 line = data.decode("utf-8").rstrip()
                 if line.startswith('$GPGGA') or line.startswith('$GNGGA'):
-                    # print(line)
+                    print(line)
                     msg = pynmea2.parse(line)
                     self.get_logger().info('Publishing GPS Info: "%s"' % str(msg))
                     gps_msg = NavSatFix()
@@ -59,12 +58,13 @@ class GPSPublisher_TCP(Node):
     def __init__(self):
         super().__init__('gps_subpub')
         self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
-        self.ip_address = "192.168.0.223"  # RS IP:192.168.0.222(RS+) and [.223(RS2) for robot_AP] and [.213 for ehsani_lab] 
+        # self.ip_address = "192.168.0.222"  # RS IP:192.168.0.222(RS+) and [.223(RS2) for robot_AP] and [.213 for ehsani_lab] 
+        self.ip_address = "10.42.0.52"
         self.port = 9001
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sensor_timeout = 0.5  
+        self.sensor_timeout = 0.2  
         self.last_received_time = None
-        self.covariance = [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
+        self.covariance = [0.0001, 0.0, 0.0, 0.0, 0.0001, 0.0, 0.0, 0.0, 0.0001]
 
         self.establish_connection()
 

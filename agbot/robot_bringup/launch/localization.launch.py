@@ -10,8 +10,11 @@ def generate_launch_description():
     desc_pkg = get_package_share_path('robot_description')
     default_model_path = os.path.join(desc_pkg, 'urdf', 'robot_description.urdf.xacro')
 
+    #path to the extended Kalman Filter Parameter file
     my_pkg_path = get_package_share_path('robot_bringup')
     default_ekf_path = os.path.join(my_pkg_path, 'config', 'ekf_params.yaml')
+
+    
     default_rviz_config_path = os.path.join(my_pkg_path, 'rviz', 'localization.rviz')
 
     map_launch_path = os.path.join(my_pkg_path, 'launch', 'map_publisher.launch.py')
@@ -112,6 +115,12 @@ def generate_launch_description():
             executable='motor_controller',
             name='motor_controller_node',
         )
+
+    #robot_control = Node(
+    #        package='robot_bringup',
+    #        executable='robot_controller_py',
+    #        name='robot_controller_node',
+    #    )
 
     return LaunchDescription([
         sim_time_arg,

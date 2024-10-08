@@ -55,7 +55,7 @@ private:
             {
                 std::lock_guard<std::mutex> lock(robot_mutex_);
                 robot_->set_neutral();
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < 1; i++)
                 {
                     robot_->sending_data();
                 }
@@ -93,26 +93,27 @@ private:
 
     int direction_corrector(double left_speed, double right_speed)
     {
-        int direction;
-        if (right_speed > 0 && left_speed > 0)
-        {
-            direction = 0; // forward
-        }
-        else if (left_speed > 0 && right_speed < 0)
-        {
-            direction = 1; // cw
-        }
-        else if (left_speed < 0 && right_speed > 0)
-        {
-            direction = 2; // ccw           
-        }
-        else if (left_speed < 0 && right_speed < 0)
-        {
-            direction = 3; // reverse
-        }
+        double tolerance = 0.01;  // Add a small tolerance for minor differences
 
-        return direction;
+        if (std::abs(left_speed - right_speed) < tolerance && left_speed > 0)
+        {
+            return 0;  // Forward movement
+        }
+        else if (std::abs(left_speed - right_speed) < tolerance && left_speed < 0)
+        {
+            return 3;  // Reverse movement
+        }
+        else if (left_speed > right_speed + tolerance)
+        {
+            return 1;  // Clockwise turn (cw)
+        }
+        else if (right_speed > left_speed + tolerance)
+        {
+            return 2;  // Counterclockwise turn (ccw)
+        }
+        return 0;  // Default to forward if in doubt
     }
+
 
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_;
     std::shared_ptr<RobotCommands> robot_;

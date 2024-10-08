@@ -8,43 +8,43 @@ from ament_index_python.packages import get_package_share_directory
 import os
 
 def generate_launch_description():
-    imu_launch_dir = os.path.join(get_package_share_directory('vectornav'),'launch','vectornav.launch.py')
-    lidar2d_launch_dir = os.path.join(get_package_share_directory('sllidar_ros2'),'launch','sllidar_s1_launch.py')
-    realsense_launch_dir = os.path.join(get_package_share_directory('realsense2_camera'),'launch','rs_launch.py')
+    #imu_launch_dir = os.path.join(get_package_share_directory('vectornav'),'launch','vectornav.launch.py')
+    #lidar2d_launch_dir = os.path.join(get_package_share_directory('sllidar_ros2'),'launch','sllidar_s1_launch.py')
+    #realsense_launch_dir = os.path.join(get_package_share_directory('realsense2_camera'),'launch','rs_launch.py')
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
 
-    imu = DeclareLaunchArgument('imu', default_value='false', description='IMU sensor node')
-    gnss = DeclareLaunchArgument('gnss', default_value='false', description='RTK/GNSS sensor node')
-    lidar2d = DeclareLaunchArgument('lidar2d', default_value='false', description='Lidar2D sensor node')
-    realsense = DeclareLaunchArgument('realsense', default_value='false', description='Realsense d435i sensor node')
+    #imu = DeclareLaunchArgument('imu', default_value='false', description='IMU sensor node')
+    #gnss = DeclareLaunchArgument('gnss', default_value='false', description='RTK/GNSS sensor node')
+    #lidar2d = DeclareLaunchArgument('lidar2d', default_value='false', description='Lidar2D sensor node')
+    #realsense = DeclareLaunchArgument('realsense', default_value='false', description='Realsense d435i sensor node')
     encoders = DeclareLaunchArgument('encoders', default_value='true', description='left and right encoders')
 
     launch_actions = [
-        imu,
-        gnss,
-        lidar2d,
-        realsense,
+        #imu,
+        #gnss,
+        #lidar2d,
+        #realsense,
         encoders,
         
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(imu_launch_dir),
-            condition=IfCondition(LaunchConfiguration('imu'))
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(lidar2d_launch_dir),
-            condition=IfCondition(LaunchConfiguration('lidar2d'))
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(realsense_launch_dir),
-            condition=IfCondition(LaunchConfiguration('realsense'))
-        ),
-        Node(
-            package='rtk_gnss',
-            executable='RTK_GNSS',
-            condition=IfCondition(LaunchConfiguration('gnss')),
-            parameters=[{'use_sim_time': use_sim_time}],
-        ),
+        #IncludeLaunchDescription(
+        #    PythonLaunchDescriptionSource(imu_launch_dir),
+        #    condition=IfCondition(LaunchConfiguration('imu'))
+        #),
+        #IncludeLaunchDescription(
+        #    PythonLaunchDescriptionSource(lidar2d_launch_dir),
+        #    condition=IfCondition(LaunchConfiguration('lidar2d'))
+        #),
+        #IncludeLaunchDescription(
+        #    PythonLaunchDescriptionSource(realsense_launch_dir),
+        #    condition=IfCondition(LaunchConfiguration('realsense'))
+        #),
+        #Node(
+        #    package='rtk_gnss',
+        #    executable='RTK_GNSS',
+        #    condition=IfCondition(LaunchConfiguration('gnss')),
+        #    parameters=[{'use_sim_time': use_sim_time}],
+        #),
         Node(
             package='encoders',
             executable='wheel_encoder_pub',

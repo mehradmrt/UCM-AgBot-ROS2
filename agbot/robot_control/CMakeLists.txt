@@ -28,10 +28,15 @@ include_directories(include ${Boost_INCLUDE_DIRS})
 add_executable(motor_controller src/motor_controller.cpp)
 ament_target_dependencies(motor_controller rclcpp std_msgs geometry_msgs)
 
+add_executable(motor_controller_debug src/motor_controller_debug.cpp)
+ament_target_dependencies(motor_controller_debug rclcpp std_msgs geometry_msgs)
+
 target_link_libraries(motor_controller ${Boost_LIBRARIES})
+target_link_libraries(motor_controller_debug ${Boost_LIBRARIES})
 
 install(TARGETS
   motor_controller
+  motor_controller_debug
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -32,7 +32,8 @@ setup(
         'console_scripts': [
             'joint_state_pub = robot_bringup.joint_state_pub:main',
             'robot_velocity_pub = robot_bringup.robot_velocity_pub:main',
-            'robot_debugger = robot_bringup.debugger:main'
+            'robot_debugger = robot_bringup.debugger:main',
+            'robot_controller_py = robot_bringup.robot_controller:main',
         ],
     },
 )

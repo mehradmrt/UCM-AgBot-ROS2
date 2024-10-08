@@ -17,11 +17,11 @@ def generate_launch_description():
     default_bt_xml_filename = LaunchConfiguration('default_bt_xml_filename')
     map_subscribe_transient_local = LaunchConfiguration('map_subscribe_transient_local')
 
-    lifecycle_nodes = ['controller_server',
-                       'planner_server',
-                       'recoveries_server',
-                       'bt_navigator',
-                       'waypoint_follower']
+    lifecycle_nodes = ['controller_server', # Handles path tracking and sending velocity commands to the robot.
+                       'planner_server', # Responsible for path planning.
+                       'recoveries_server', # Manages recovery behaviors (e.g., clearing the path or rotating)
+                       'bt_navigator', # Executes behavior trees for high-level decision-making.
+                       'waypoint_follower'] 
 
     remappings = [('/tf', 'tf'),
                   ('/tf_static', 'tf_static')]

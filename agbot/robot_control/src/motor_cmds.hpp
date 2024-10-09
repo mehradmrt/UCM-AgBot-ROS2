@@ -62,12 +62,12 @@ public:
 
   void set_left_speed(int speed)
   {
-    data_[9] = speed;
+    data_[10] = speed;
   }
 
   void set_right_speed(int speed)
   {
-    data_[10] = speed;
+    data_[9] = speed;
   }
 
   void set_direction_ctrl(int state)
@@ -89,11 +89,6 @@ public:
 
   void sending_data()
   {
-    while (!is_connected()) 
-    {
-      std::cout << "Connection lost. Attempting to reconnect...\n";
-      connection();  
-    }
     boost::asio::write(socket_, boost::asio::buffer(data_));
     // std::this_thread::sleep_for(std::chrono::milliseconds(20));
 

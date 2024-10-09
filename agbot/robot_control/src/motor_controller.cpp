@@ -36,8 +36,21 @@ private:
         double motor_left_normalized = (linear_vel - angular_vel * wheel_distance / 2.0);
         double motor_right_normalized = (linear_vel + angular_vel * wheel_distance / 2.0);
 
-        check_status_and_send(motor_left_normalized, motor_right_normalized);
+        start_velocity_timer(motor_left_normalized, motor_right_normalized);
     }
+
+    rclcpp::TimerBase::SharedPtr timer_;
+    void start_velocity_timer(double left_speed, double right_speed)
+    {
+        auto period = std::chrono::milliseconds(50); // 20Hz update
+        timer_ = this->create_wall_timer(
+            period,
+            [this, left_speed, right_speed]() {
+                set_speed_and_direction(left_speed, right_speed);
+                robot_->sending_data();
+            });
+    }
+
 
     void check_status_and_send(double left_speed, double right_speed)
     {
@@ -50,14 +63,24 @@ private:
         
         next_rotation = direction_corrector(left_speed, right_speed);
 
+        //loop to send data 3 times with 20ms intervals
         while (current_rotation != next_rotation)
         {
             {
                 std::lock_guard<std::mutex> lock(robot_mutex_);
-                robot_->set_neutral();
-                for (int i = 0; i < 3; i++)
+                //robot_->set_neutral();
+                for (int i = 0; i < 50; i++)
                 {
+
+                    while (!robot_->is_connected()) 
+                        {
+                          std::cout << "Connection lost. Attempting to reconnect...\n";
+                          robot_->connection();  
+                        }
                     robot_->sending_data();
+
+                    // Sleep for 20ms to maintain 50Hz frequency
+                    std::this_thread::sleep_for(std::chrono::milliseconds(20));
                 }
             }
             current_rotation = next_rotation;

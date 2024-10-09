@@ -55,7 +55,7 @@ private:
             {
                 std::lock_guard<std::mutex> lock(robot_mutex_);
                 robot_->set_neutral();
-                for (int i = 0; i < 1; i++)
+                for (int i = 0; i < 4; i++)
                 {
                     robot_->sending_data();
                 }

@@ -30,7 +30,7 @@ class GPSPublisher_ser(Node):
 
 
     def read_and_publish_gps_info(self):
-        self.get_logger().info('In read_and_publish_gps_info...')
+        #self.get_logger().info('In read_and_publish_gps_info...')
         try:
             data = self.serial_conn.readline()
             if data:
@@ -39,7 +39,7 @@ class GPSPublisher_ser(Node):
                 if line.startswith('$GPGGA') or line.startswith('$GNGGA'):
                     print(line)
                     msg = pynmea2.parse(line)
-                    self.get_logger().info('Publishing GPS Info: "%s"' % str(msg))
+                    #self.get_logger().info('Publishing GPS Info: "%s"' % str(msg))
                     gps_msg = NavSatFix()
                     gps_msg.header.stamp = self.get_clock().now().to_msg()
                     gps_msg.header.frame_id = "gps_link"
@@ -49,7 +49,7 @@ class GPSPublisher_ser(Node):
                     gps_msg.position_covariance = self.covariance
                     gps_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_DIAGONAL_KNOWN
                     self.publisher_.publish(gps_msg)
-                    self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
+                    #self.get_logger().info('Publishing GPS Info: "%s"' % str(gps_msg))
         except pynmea2.ParseError as e:
             self.get_logger().error('Failed to parse NMEA sentence. Error: {}'.format(str(e)))
 
@@ -59,7 +59,8 @@ class GPSPublisher_TCP(Node):
         super().__init__('gps_subpub')
         self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
         # self.ip_address = "192.168.0.222"  # RS IP:192.168.0.222(RS+) and [.223(RS2) for robot_AP] and [.213 for ehsani_lab] 
-        self.ip_address = "10.42.0.52"
+        # "192.168.42.1" IP is the same for both Rover and Base when you connect to their Hotspot network
+        self.ip_address = "192.168.1.101"
         self.port = 9001
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sensor_timeout = 0.2  
@@ -137,8 +138,8 @@ class GPSPublisher_TCP(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    gps_publisher = GPSPublisher_TCP() 
-    # gps_publisher = GPSPublisher_ser()
+    #gps_publisher = GPSPublisher_TCP() 
+    gps_publisher = GPSPublisher_ser()
 
     rclpy.spin(gps_publisher)
 

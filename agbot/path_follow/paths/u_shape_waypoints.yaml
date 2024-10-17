@@ -1,0 +1,5 @@
+waypoints:
+  - {x: 0.0, y: 0.0, z: 0.0, yaw: 0.0}    # Start at (0,0)
+  - {x: 6.0, y: 0.0, z: 0.0, yaw: 0.0}    # Straight path to (6,0)
+  - {x: 6.0, y: 4.0, z: 0.0, yaw: 1.57}   # Turn upward (6,4)
+  - {x: 0.0, y: 4.0, z: 0.0, yaw: 3.14}   # Straight back, end at (0,4)

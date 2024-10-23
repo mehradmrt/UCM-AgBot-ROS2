@@ -10,7 +10,7 @@ import yaml
 class WaypointFollower(Node):
     def __init__(self):
         super().__init__('waypoint_follower')
-        self.client = ActionClient(self, FollowWaypoints, 'follow_waypoints')
+        self.client = ActionClient(self, FollowWaypoints, '/FollowWaypoints')
 
     def send_waypoints(self, waypoints_file):
         # Load waypoints from YAML file
@@ -38,7 +38,7 @@ def main(args=None):
     rclpy.init(args=args)
     follower = WaypointFollower()
     
-    follower.send_waypoints('agbot/path_follow/paths/s_shape_waypoints.yaml')
+    follower.send_waypoints('/home/ali/ros2_ws/src/UCM-AgBot-ROS2/agbot/path_follow/paths/s_shape_waypoints.yaml')
     
     rclpy.spin(follower)
     rclpy.shutdown()

@@ -12,11 +12,12 @@ def generate_launch_description():
     lidar2d_launch_dir = os.path.join(get_package_share_directory('sllidar_ros2'),'launch','sllidar_s1_launch.py')
     #realsense_launch_dir = os.path.join(get_package_share_directory('realsense2_camera'),'launch','rs_launch.py')
 
+    # the sim_time  should be false when you use gps data!
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
 
     imu = DeclareLaunchArgument('imu', default_value='true', description='IMU sensor node')
     gnss = DeclareLaunchArgument('gnss', default_value='true', description='RTK/GNSS sensor node')
-    lidar2d = DeclareLaunchArgument('lidar2d', default_value='true', description='Lidar2D sensor node')
+    lidar2d = DeclareLaunchArgument('lidar2d', default_value='false', description='Lidar2D sensor node')
     #realsense = DeclareLaunchArgument('realsense', default_value='false', description='Realsense d435i sensor node')
     encoders = DeclareLaunchArgument('encoders', default_value='true', description='left and right encoders')
 

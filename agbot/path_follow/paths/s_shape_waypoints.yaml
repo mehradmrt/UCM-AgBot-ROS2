@@ -1,8 +1,14 @@
 waypoints:
-  - {x: 0.0, y: 0.0, z: 0.0, yaw: 0.0}    # Start at (0,0)
-  - {x: 2.0, y: 2.0, z: 0.0, yaw: 0.7}    # Curve upward (2,2)
-  - {x: 4.0, y: 4.0, z: 0.0, yaw: 0.9}    # Continue curve (4,4)
-  - {x: 6.0, y: 2.0, z: 0.0, yaw: -0.7}   # Turn downward (6,2)
-  - {x: 8.0, y: 0.0, z: 0.0, yaw: -0.9}   # Continue downward (8,0)
-  - {x: 10.0, y: -2.0, z: 0.0, yaw: -0.7} # Finish curve downward (10,-2)
-  - {x: 12.0, y: 0.0, z: 0.0, yaw: 0.0}   # End at (12,0)
+  - {x: 0.0, y: -2.0, z: 0.0, yaw: 1.57}    # Start at (0,0)
+  - {x: 0.0, y: 2.0, z: 0.0, yaw: 1.57}    # Curve upward (2,2)
+  - {x: 2.0, y: 2.0, z: 0.0, yaw: 0.0}    # Continue curve (4,4)
+  - {x: 2.0, y: -2.0, z: 0.0, yaw: -1.57}   # Turn downward (6,2)
+  - {x: 0.0, y: -2.0, z: 0.0, yaw: -3.14}   # Continue downward (8,0)
+# End at (12,0)
+
+
+
+
+
+
+# End at (12,0)

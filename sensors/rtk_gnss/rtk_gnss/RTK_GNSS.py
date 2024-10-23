@@ -25,7 +25,7 @@ class GPSPublisher_ser(Node):
 
         self.covariance = [0.0001, 0.0, 0.0, 0.0, 0.0001, 0.0, 0.0, 0.0, 0.0001]
         
-        time_period = 0.1
+        time_period = 0.01
         self.timer = self.create_timer(time_period, self.read_and_publish_gps_info)
 
 

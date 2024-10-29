@@ -1,0 +1,44 @@
+waypoints:
+  - pose:
+      position:
+        x: 3.0
+        y: 0.0
+        z: 0.2
+      orientation:
+        x: 0.0
+        y: 0.0
+        z: -0.707
+        w: 0.707
+
+  - pose:
+      position:
+        x: 3.0
+        y: -3.0
+        z: 0.2
+      orientation:
+        x: 0.0
+        y: 0.0
+        z: -1.0
+        w: 0.0
+
+  - pose:
+      position:
+        x: 0.0
+        y: -3.0
+        z: 0.2
+      orientation:
+        x: 0.0
+        y: 0.0
+        z: 0.707
+        w: 0.707
+
+  - pose:
+      position:
+        x: 0.0
+        y: 0.0
+        z: 0.2
+      orientation:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0

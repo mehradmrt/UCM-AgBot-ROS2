@@ -53,11 +53,12 @@ def generate_launch_description():
             name='navsat_transform',
             output='screen',
             parameters=[default_ekf_path, {'use_sim_time': use_sim_time}],
-            remappings=[('imu/data', 'vectornav/imu_uncompensated'),
+            remappings=[('imu', 'vectornav/imu_uncompensated'),
                         ('gps/fix', 'gps/fix'), 
                         ('odometry/filtered', 'odometry/global'),
                         ('gps/filtered', 'gps/filtered'),
-                        ('odometry/gps', 'odometry/gps'),remappings] 
+                        ('odometry/gps', 'odometry/gps')
+            ] 
         )
 
     ekf_filter_node_odom = Node(

@@ -63,8 +63,8 @@ class PathPlotter(Node):
 
         # Convert GPS lat/lon to x/y coordinates relative to the initial point
         x, y = self.latlon_to_xy(data.latitude, data.longitude, self.lat0, self.lon0)
-        self.gps_x_positions.append(-x)
-        self.gps_y_positions.append(-y)
+        self.gps_x_positions.append(x)
+        self.gps_y_positions.append(y)
         self.get_logger().info(f'GPS point added: x={x}, y={y}')
 
     def plot_paths(self):

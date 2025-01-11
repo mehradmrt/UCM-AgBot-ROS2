@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
+- [Ubuntu (20.04)](https://releases.ubuntu.com/20.04/)
 
 - [ROS2 (Foxy)](https://docs.ros.org/en/foxy/Installation.html)  
 
@@ -48,19 +48,28 @@ Clone the main repository along with all the submodules using:
 
 ## Usage
 
+### RoMu4o Navigation
+
 Leaf Manipulation requires launching the realsense :
 
     ros2 launch realsense2_camera rs_launch.py pointcloud.enable:=true pointcloud.ordered_pc:=true depth_module.profile:=1280x720x30 rgb_camera.profile:=1280x720x30
 
     ros2 param set /camera/camera pointcloud.ordered_pc true
 
-Run the perception pipeline:
+### RoMu4o Perception and Leaf Manipulation
 
-    ros2 run leaf_extraction instance_segmentation
+Run driver packages for sensors and devices:
+
+``` ros2 launch robot_bringup sensors_arm.launch.py ```
 
 Run the robotic manipulation pipeline:
 
-    ros2 launch tm_moveit_cpp_demo tm5-900_run_moveit_cpp.launch.py robot_ip:=192.168.1.19
+``` ros2 launch tm_moveit_cpp_demo tm5-900_run_moveit_cpp.launch.py robot_ip:=192.168.1.19 ```
+
+Run the perception pipeline:
+
+``` ros2 run leaf_extraction instance_segmentation ```
+
 
 ## Cite this work
 

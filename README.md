@@ -15,11 +15,11 @@ UCM-AgBot-ROS2/
 │   ├── robot_description/   # URDF and robot model 
 │   └── robot_simulator/     # Simulation setup 
 │
-├── cobot/                   # TM5 collaborative arm package
+├── cobot/                   # TM5 collaborative arm 
 ├── custom_interfaces/       # Custom messages and services
 ├── devices/                 # Driver packages
 ├── sensors/                 # Driver packages
-├── vision/                  # Perception algorithms
+├── vision/                  # Perception module
 ├── .gitignore               
 ├── .gitmodules              # Forked Repositories
 ├── LICENSE                  

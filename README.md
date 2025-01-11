@@ -29,8 +29,9 @@ UCM-AgBot-ROS2/
 ## **Requirements**
 
 - [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)  
-- [ROS2 Foxy](https://docs.ros.org/en/foxy/Installation.html)  
-- [MoveIt2 Foxy](https://moveit.ai/install-moveit2/binary/)
+- [ROS2 (Foxy)](https://docs.ros.org/en/foxy/Installation.html)  
+- [MoveIt2 (Foxy)](https://moveit.ai/install-moveit2/binary/)
+- [NAV2 (Foxy)](https://docs.nav2.org/getting_started/index.html)
 
 ---
 ## **Forked Repositories**  

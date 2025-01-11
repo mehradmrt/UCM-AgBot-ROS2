@@ -11,3 +11,6 @@
 [submodule "devices/onrobot_grippers_ros2"]
 	path = devices/onrobot_grippers_ros2
 	url = https://github.com/mehradmrt/onrobot_grippers_ros2
+[submodule "sensors/nanospec"]
+	path = sensors/nanospec
+	url = https://github.com/mehradmrt/nanoLambda_ros2_driver

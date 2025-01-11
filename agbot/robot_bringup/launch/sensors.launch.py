@@ -15,10 +15,10 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
 
     imu = DeclareLaunchArgument('imu', default_value='false', description='IMU sensor node')
-    gnss = DeclareLaunchArgument('gnss', default_value='false', description='RTK/GNSS sensor node')
+    gnss = DeclareLaunchArgument('gnss', default_value='true', description='RTK/GNSS sensor node')
     lidar2d = DeclareLaunchArgument('lidar2d', default_value='true', description='Lidar2D sensor node')
     realsense = DeclareLaunchArgument('realsense', default_value='false', description='Realsense d435i sensor node')
-    encoders = DeclareLaunchArgument('encoders', default_value='false', description='left and right encoders')
+    encoders = DeclareLaunchArgument('encoders', default_value='true', description='left and right encoders')
 
     launch_actions = [
         imu,

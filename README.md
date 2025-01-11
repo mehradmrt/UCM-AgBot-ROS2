@@ -1,6 +1,6 @@
 # **RoMu4o: A Robotic Manipulation Unit for Orchard Operations**
 
-RoMu4o, is a robotic manipulation unit for orchard operations, designed to provide an autonomous solution for continuous orchard monitoring. This robotic system is capable of navigating unstructured agricultural environments for proximal hyperspectral leaf sensing. The hardware is comprised of 1) 6-DOF robotic manipulator 2) RGBD camera 3) two-finger gripper end-effector integrated with a hyperspectral sensing system 4) an independent VIS-NIR light source for referencing and self-calibration 5) crawler-type ground robot 6) electric and control boxes, hardware drivers, portable batteries, processing unit, Ethernet hub, and auxiliary hardware needed for the UGV's navigation.
+RoMu4o, is a robotic manipulation unit for orchard operations, designed to provide an autonomous solution for continuous orchard monitoring. This robotic system is capable of navigating unstructured agricultural environments for crop monitoring and proximal hyperspectral leaf sensing. The hardware is comprised of 1) 6-DOF robotic manipulator 2) RGBD camera 3) two-finger gripper end-effector integrated with a hyperspectral sensing system 4) an independent VIS-NIR light source for referencing and self-calibration 5) crawler-type ground robot 6) electric and control boxes, hardware drivers, portable batteries, processing unit, Ethernet hub, and auxiliary hardware needed for the UGV's navigation.
 
 <img src=".tmp/RoMu4o.png" alt="RoMu4o Hardware" width="400" title="RoMu4o Hardware"/>
 
@@ -38,6 +38,7 @@ UCM-AgBot-ROS2/
 - [RealSense D435i](https://github.com/mehradmrt/realsense-ros)  
 - [TM/OMRON TM5M-900](https://github.com/mehradmrt/tmr_ros2)  
 - [Vectornav](https://github.com/mehradmrt/vectornav)  
+- [Slamtec](https://github.com/Slamtec/sllidar_ros2)
 
 ---
 

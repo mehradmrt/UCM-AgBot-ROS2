@@ -1,12 +1,35 @@
 # **RoMu4o: A Robotic Manipulation Unit for Orchard Operations**
 
+## **Repository structure**
+
+```
+UCM-AgBot-ROS2/
+├── agbot/                   # Main robot packages
+│   │
+│   ├── robot_bringup/       # RoMu4o launch files and setup
+│   ├── robot_control/       # Mobile Robot control 
+│   ├── robot_description/   # URDF and robot model 
+│   └── robot_simulator/     # Simulation setup 
+│
+├── cobot/                   # TM5 collaborative arm package
+├── custom_interfaces/       # Custom messages and services
+├── devices/                 # Driver packages
+├── sensors/                 # Driver packages
+├── vision/                  # Perception algorithms
+├── .gitignore               
+├── .gitmodules              # Forked Repositories
+├── LICENSE                  
+└── README.md                # Project documentation
+```
+
 ## **Requirements**
 
 - [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)  
 - [ROS2 Foxy](https://docs.ros.org/en/foxy/Installation.html)  
 - [MoveIt2 Foxy](https://moveit.ai/install-moveit2/binary/)
 
-### **Forked Repositories**  
+---
+## **Forked Repositories**  
 
 - [RealSense D435i](https://github.com/mehradmrt/realsense-ros)  
 - [TM/OMRON TM5M-900](https://github.com/mehradmrt/tmr_ros2)  
@@ -40,7 +63,7 @@
 
 5. **Build the workspace**:  
     ```bash
-    colcon build --symlink-install
+    colcon build
     ```
 
 6. **Source the environment**:  

@@ -1,5 +1,7 @@
 # RoMu4o: A Robotic Manipulation Unit For Orchard Operations Automating Proximal Hyperspectral Leaf Sensing
 
+
+
 ## Requirements
 
 - [Ubuntu (20.04)](https://releases.ubuntu.com/20.04/)
@@ -7,6 +9,16 @@
 - [ROS2 (Foxy)](https://docs.ros.org/en/foxy/Installation.html)  
 
 - [MoveIt2 (Foxy)](https://moveit.ai/install-moveit2/binary/)
+
+
+Forked Repositories : 
+
+- [RealSense (D435i)](https://github.com/mehradmrt/realsense-ros)
+
+- [TM/OMRON (TM5M-900)](https://github.com/mehradmrt/tmr_ros2)
+
+- [Vectornav](https://github.com/mehradmrt/vectornav)
+
 
 ## Installation
 
@@ -50,24 +62,44 @@ Clone the main repository along with all the submodules using:
 
 ### RoMu4o Navigation
 
-Leaf Manipulation requires launching the realsense :
+Launch driver packages for sensors and devices:
 
-    ros2 launch realsense2_camera rs_launch.py pointcloud.enable:=true pointcloud.ordered_pc:=true depth_module.profile:=1280x720x30 rgb_camera.profile:=1280x720x30
+```sh
+ros2 launch robot_bringup sensors.launch.py imu:=true gnss:=true lidar2d:=true realsense:=true encoders:=true
+ ```
 
-    ros2 param set /camera/camera pointcloud.ordered_pc true
+Launch robot bringup:
+
+```sh
+ros2 launch robot_bringup bringup.launch.py 
+```
+
+Launch robot localization:
+
+```sh
+ros2 launch robot_bringup localization.launch.py 
+```
+
+Launch robot navigation:
+
+```sh
+ros2 launch robot_bringup navigation.launch.py 
+```
+
+
 
 ### RoMu4o Perception and Leaf Manipulation
 
-Run driver packages for sensors and devices:
+Launch driver packages for sensors and devices:
 
 ```sh
- ros2 launch robot_bringup sensors_arm.launch.py 
+ros2 launch robot_bringup sensors_arm.launch.py 
  ```
 
-Run the robotic manipulation pipeline:
+Launch the robotic manipulation pipeline:
 
 ```sh
- ros2 launch tm_moveit_cpp_demo tm5-900_run_moveit_cpp.launch.py robot_ip:=192.168.1.19 
+ros2 launch tm_moveit_cpp_demo tm5-900_run_moveit_cpp.launch.py robot_ip:=192.168.1.19 
 ```
 
 Run the perception pipeline:

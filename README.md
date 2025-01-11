@@ -60,15 +60,21 @@ Leaf Manipulation requires launching the realsense :
 
 Run driver packages for sensors and devices:
 
-``` ros2 launch robot_bringup sensors_arm.launch.py ```
+```sh
+ ros2 launch robot_bringup sensors_arm.launch.py 
+ ```
 
 Run the robotic manipulation pipeline:
 
-``` ros2 launch tm_moveit_cpp_demo tm5-900_run_moveit_cpp.launch.py robot_ip:=192.168.1.19 ```
+```sh
+ ros2 launch tm_moveit_cpp_demo tm5-900_run_moveit_cpp.launch.py robot_ip:=192.168.1.19 
+```
 
 Run the perception pipeline:
 
-``` ros2 run leaf_extraction instance_segmentation ```
+```sh
+ros2 run leaf_extraction instance_segmentation 
+```
 
 
 ## Cite this work

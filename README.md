@@ -128,5 +128,4 @@ UCM-AgBot-ROS2/
 
     ```
     Mortazavi, M., Cappelleri, D.J., Ehsani, R., 2025. RoMu4o: A Robotic Manipulation Unit For Orchard Operations Automating Proximal Hyperspectral Leaf Sensing. *arXiv preprint arXiv:2409.19786*.
-
     ```

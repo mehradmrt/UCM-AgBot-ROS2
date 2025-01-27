@@ -124,7 +124,7 @@ UCM-AgBot-ROS2/
 
 ---
 
-## **To cite this work**
+## **Reference**
 
 ```
 Mortazavi, M., Cappelleri, D.J., Ehsani, R., 2025. RoMu4o: A Robotic Manipulation Unit
